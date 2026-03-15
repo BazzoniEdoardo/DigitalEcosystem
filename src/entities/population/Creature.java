@@ -1,0 +1,147 @@
+package entities.population;
+
+import configuration.CreatureConfig;
+import configuration.RandomConfig;
+import entities.Food;
+import entities.SimulationEntity;
+import entities.World;
+import entities.movement.Position;
+import managers.EntityManager;
+import managers.StatsManager;
+
+import java.io.Serializable;
+import java.util.Objects;
+
+public class Creature implements SimulationEntity, Serializable {
+    private static final long serialVersionUID = 1L;
+
+    //Le statistiche saranno delegate ad una classe DNA
+
+    protected final int id;
+    protected Position position;
+    protected float energy;
+    protected float hunger;
+    protected boolean alive;
+    protected boolean moving;
+
+    public Creature(final Position position, final float energy, final float hunger) {
+        this.id = EntityManager.nextId();
+        setPosition(position);
+        setEnergy(energy);
+        setHunger(hunger);
+        setAlive(true);
+    }
+
+    public Creature() {
+        this(null, CreatureConfig.baseEnergy, CreatureConfig.baseHunger);
+    }
+
+    public Creature(final Creature creature) {
+        this(creature.getPosition(), creature.getEnergy(), creature.getHunger());
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public Position getPosition() {
+        return position;
+    }
+
+    public float getEnergy() {
+        return energy;
+    }
+
+    public float getHunger() {
+        return hunger;
+    }
+
+    public boolean isAlive() { return alive; }
+
+    public boolean isMoving() { return moving; }
+
+    private void setPosition(final Position position) {
+        this.position = (position != null) ? position : new Position(0, 0);
+    }
+
+    private void setEnergy(final float energy) {
+        this.energy = (this.energy >= 0) ? energy : CreatureConfig.baseEnergy;
+    }
+
+    private void setHunger(final float hunger) {
+        this.hunger = (this.hunger >= 0) ? hunger : CreatureConfig.baseHunger;
+    }
+
+    private void setAlive(final boolean alive) { this.alive = alive; }
+
+    private void setMoving(final boolean moving) { this.moving = moving; }
+
+    public void eat(final Food food) {
+        this.energy += food.getNutrition();
+        StatsManager.printFoodAlert(this, food);
+    }
+
+    public SimulationEntity clone() {
+        return new Creature(this);
+    }
+
+    //MAIN METHODS
+
+    public Position getNextPosition() {
+        return new Position(RandomConfig.random.nextInt(position.x()-1, position.x()+2), RandomConfig.random.nextInt(position.y()-1, position.y()+2));
+    }
+
+    public boolean move(final Position position) {
+        if (Objects.equals(position, this.position)) return false;
+
+        setPosition(position);
+        setMoving(true);
+        return true;
+    }
+
+    private boolean canReproduce() {
+        return this.energy >= CreatureConfig.reproductionThreshold;
+    }
+
+    @Override
+    public void update() {
+        if (!isAlive()) return;
+
+        //Movimento
+        energy -= (moving) ? CreatureConfig.energyLossPerMove : CreatureConfig.energyLossPerTick;
+        setMoving(false);
+
+        //Riproduzione
+        if (canReproduce()) {
+            World.preCreatures.add(new PreCreature(CreatureConfig.pregnancyTicks, this));
+            setEnergy(this.energy-CreatureConfig.reproductionCost);
+        }
+
+        //Morte
+        if (energy <= 0) {
+            setAlive(false);
+        }
+
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Creature creature)) return false;
+        return getId() == creature.getId() && getEnergy() == creature.getEnergy() && getHunger() == creature.getHunger() && Objects.equals(getPosition(), creature.getPosition());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), getPosition(), getEnergy(), getHunger());
+    }
+
+    @Override
+    public String toString() {
+        return "Creature{" +
+                "id=" + id +
+                ", position=" + position +
+                ", energy=" + energy +
+                ", hunger=" + hunger +
+                '}';
+    }
+}
