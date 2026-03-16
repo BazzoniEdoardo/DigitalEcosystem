@@ -1,3 +1,5 @@
+package core;
+
 import configuration.ApplicationConfig;
 import entities.World;
 import javafx.animation.AnimationTimer;
@@ -7,17 +9,24 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import managers.SimulationManager;
 import render.SimulationRenderer;
 import ui.UiManager;
 
-public class Main extends Application {
+public class App extends Application {
+
+    //TODO: AGGIUNGERE GRAFICI E STATS, DOPODICHE AGGIUNGERE IL DNA
+
+    private static SimulationManager simManager;
 
     @Override
     public void start(Stage stage) {
+
         //Creazione della simulazione
         SimulationManager simulation = new SimulationManager();
+        setSimManager(simulation);
 
         //Manager del layout
         final BorderPane layoutManager = new BorderPane();
@@ -26,10 +35,12 @@ public class Main extends Application {
         final Canvas canvas = UiManager.createCanvas();
         final MenuBar menuBar = UiManager.createMenuBar(simulation, stage);
         final ToolBar toolBar = UiManager.createToolBar(simulation);
+        final HBox sidePanel = UiManager.createSidePanel(simulation);
 
         layoutManager.setTop(menuBar);
         layoutManager.setCenter(canvas);
         layoutManager.setBottom(toolBar);
+        layoutManager.setLeft(sidePanel);
 
         final Scene scene = new Scene(layoutManager, ApplicationConfig.WIDTH, ApplicationConfig.HEIGHT);
 
@@ -65,5 +76,13 @@ public class Main extends Application {
 
     public static void main(String[] args) throws InterruptedException {
         launch();
+    }
+
+    private static void setSimManager(final SimulationManager manager) {
+        simManager = manager;
+    }
+
+    public static SimulationManager getSimManager() {
+        return simManager;
     }
 }

@@ -1,6 +1,6 @@
 package entities.population;
 
-import configuration.CreatureConfig;
+import core.App;
 import entities.SimulationEntity;
 
 import java.io.Serializable;
@@ -17,7 +17,7 @@ public class PreCreature implements SimulationEntity, Serializable {
     }
 
     public PreCreature() {
-        this(CreatureConfig.pregnancyTicks, null);
+        this((int) App.getSimManager().getSettings().getPregnancyTicks(), null);
     }
 
     public PreCreature(final PreCreature preCreature) {

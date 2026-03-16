@@ -1,12 +1,14 @@
 package entities;
 
-import configuration.FoodConfig;
+import core.App;
 import entities.movement.Position;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
 public class Food implements SimulationEntity, Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     protected float nutrition;
@@ -21,7 +23,7 @@ public class Food implements SimulationEntity, Serializable {
     }
 
     public Food() {
-        this(new Position(0, 0), FoodConfig.baseNutrition);
+        this(new Position(0, 0), App.getSimManager().getSettings().getBaseNutrition());
     }
 
     public Food(final Food food) {
@@ -41,7 +43,7 @@ public class Food implements SimulationEntity, Serializable {
     }
 
     private void setNutrition(final float nutrition) {
-        this.nutrition = (nutrition > 0) ? nutrition : FoodConfig.baseNutrition;
+        this.nutrition = (nutrition > 0) ? nutrition : App.getSimManager().getSettings().getBaseNutrition();
     }
 
     private void setExpired(final boolean expired) {
@@ -56,7 +58,7 @@ public class Food implements SimulationEntity, Serializable {
     public void update() {
         if (isExpired()) return;
 
-        this.nutrition -= FoodConfig.decaymentPerTick;
+        this.nutrition -= App.getSimManager().getSettings().getDecaymentPerTick();
 
         if (this.nutrition <= 0) {
             setExpired(true);

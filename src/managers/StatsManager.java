@@ -1,9 +1,6 @@
 package managers;
 
-import configuration.CreatureConfig;
-import configuration.FoodConfig;
-import configuration.SimulationConfig;
-import configuration.WorldConfig;
+import core.App;
 import entities.Food;
 import entities.population.Creature;
 import stats.SimulationSnapshot;
@@ -213,20 +210,20 @@ public class StatsManager {
 
         System.out.println("\n[ CONFIGURATION ]");
         System.out.println(sub);
-        System.out.printf("  World Size             : %d x %d%n", WorldConfig.width, WorldConfig.height);
-        System.out.printf("  Base Population        : %d%n", WorldConfig.basePopulation);
-        System.out.printf("  Base Food              : %d%n", WorldConfig.baseFood);
-        System.out.printf("  Food Per Tick          : %.2f%n", WorldConfig.foodPerTick);
-        System.out.printf("  Tick Duration (ms)     : %d%n", SimulationConfig.tickDuration);
-        System.out.printf("  Creature Base Energy   : %.1f%n", CreatureConfig.baseEnergy);
-        System.out.printf("  Creature Base Hunger   : %.1f%n", CreatureConfig.baseHunger);
-        System.out.printf("  Energy Loss/Tick       : %.1f%n", CreatureConfig.energyLossPerTick);
-        System.out.printf("  Energy Loss/Move       : %.1f%n", CreatureConfig.energyLossPerMove);
-        System.out.printf("  Reproduction Threshold : %.1f%n", CreatureConfig.reproductionThreshold);
-        System.out.printf("  Reproduction Cost      : %.1f%n", CreatureConfig.reproductionCost);
-        System.out.printf("  Pregnancy Ticks        : %d%n",   CreatureConfig.pregnancyTicks);
-        System.out.printf("  Food Base Nutrition    : %.1f%n", FoodConfig.baseNutrition);
-        System.out.printf("  Food Decay/Tick        : %.1f%n", FoodConfig.decaymentPerTick);
+        System.out.printf("  World Size             : %d x %d%n", App.getSimManager().getSettings().getWidth(), App.getSimManager().getSettings().getHeight());
+        System.out.printf("  Base Population        : %d%n", App.getSimManager().getSettings().getBasePopulation());
+        System.out.printf("  Base Food              : %d%n", App.getSimManager().getSettings().getBaseFood());
+        System.out.printf("  Food Per Tick          : %.2f%n", App.getSimManager().getSettings().getFoodPerTick());
+        System.out.printf("  Tick Duration (ms)     : %.2f%n", App.getSimManager().getSettings().getTickDuration());
+        System.out.printf("  Creature Base Energy   : %.1f%n", App.getSimManager().getSettings().getBaseEnergy());
+        System.out.printf("  Creature Base Hunger   : %.1f%n", App.getSimManager().getSettings().getBaseHunger());
+        System.out.printf("  Energy Loss/Tick       : %.1f%n", App.getSimManager().getSettings().getEnergyLossPerTick());
+        System.out.printf("  Energy Loss/Move       : %.1f%n", App.getSimManager().getSettings().getEnergyLossPerMove());
+        System.out.printf("  Reproduction Threshold : %.1f%n", App.getSimManager().getSettings().getReproductionThreshold());
+        System.out.printf("  Reproduction Cost      : %.1f%n", App.getSimManager().getSettings().getReproductionCost());
+        System.out.printf("  Pregnancy Ticks        : %.2f%n",   App.getSimManager().getSettings().getPregnancyTicks());
+        System.out.printf("  Food Base Nutrition    : %.1f%n", App.getSimManager().getSettings().getBaseNutrition());
+        System.out.printf("  Food Decay/Tick        : %.1f%n", App.getSimManager().getSettings().getDecaymentPerTick());
 
         System.out.println("\n[ DURATION ]");
         System.out.println(sub);
@@ -321,21 +318,21 @@ public class StatsManager {
 
         // Config
         sb.append("  \"config\": {\n");
-        sb.append(jf("world_width",                      WorldConfig.width));
-        sb.append(jf("world_height",                     WorldConfig.height));
-        sb.append(jf("base_population",                  WorldConfig.basePopulation));
-        sb.append(jf("base_food",                        WorldConfig.baseFood));
-        sb.append(jf("food_per_tick",                    WorldConfig.foodPerTick));
-        sb.append(jf("tick_duration_ms",                 SimulationConfig.tickDuration));
-        sb.append(jf("creature_base_energy",             CreatureConfig.baseEnergy));
-        sb.append(jf("creature_base_hunger",             CreatureConfig.baseHunger));
-        sb.append(jf("creature_energy_loss_per_tick",    CreatureConfig.energyLossPerTick));
-        sb.append(jf("creature_energy_loss_per_move",    CreatureConfig.energyLossPerMove));
-        sb.append(jf("creature_reproduction_threshold",  CreatureConfig.reproductionThreshold));
-        sb.append(jf("creature_reproduction_cost",       CreatureConfig.reproductionCost));
-        sb.append(jf("creature_pregnancy_ticks",         CreatureConfig.pregnancyTicks));
-        sb.append(jf("food_base_nutrition",              FoodConfig.baseNutrition));
-        sb.append(jfl("food_decay_per_tick",             FoodConfig.decaymentPerTick));
+        sb.append(jf("world_width",                      App.getSimManager().getSettings().getWidth()));
+        sb.append(jf("world_height",                     App.getSimManager().getSettings().getHeight()));
+        sb.append(jf("base_population",                  App.getSimManager().getSettings().getBasePopulation()));
+        sb.append(jf("base_food",                        App.getSimManager().getSettings().getBaseFood()));
+        sb.append(jf("food_per_tick",                    App.getSimManager().getSettings().getFoodPerTick()));
+        sb.append(jf("tick_duration_ms",                 App.getSimManager().getSettings().getTickDuration()));
+        sb.append(jf("creature_base_energy",             App.getSimManager().getSettings().getBaseEnergy()));
+        sb.append(jf("creature_base_hunger",             App.getSimManager().getSettings().getBaseHunger()));
+        sb.append(jf("creature_energy_loss_per_tick",    App.getSimManager().getSettings().getEnergyLossPerTick()));
+        sb.append(jf("creature_energy_loss_per_move",    App.getSimManager().getSettings().getEnergyLossPerMove()));
+        sb.append(jf("creature_reproduction_threshold",  App.getSimManager().getSettings().getReproductionThreshold()));
+        sb.append(jf("creature_reproduction_cost",       App.getSimManager().getSettings().getReproductionCost()));
+        sb.append(jf("creature_pregnancy_ticks",         App.getSimManager().getSettings().getPregnancyTicks()));
+        sb.append(jf("food_base_nutrition",              App.getSimManager().getSettings().getBaseNutrition()));
+        sb.append(jfl("food_decay_per_tick",             App.getSimManager().getSettings().getDecaymentPerTick()));
         sb.append("  },\n");
 
         // Durata

@@ -1,7 +1,7 @@
 package entities.population;
 
-import configuration.CreatureConfig;
 import configuration.RandomConfig;
+import core.App;
 import entities.Food;
 import entities.SimulationEntity;
 import entities.World;
@@ -9,10 +9,12 @@ import entities.movement.Position;
 import managers.EntityManager;
 import managers.StatsManager;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
 public class Creature implements SimulationEntity, Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     //Le statistiche saranno delegate ad una classe DNA
@@ -33,7 +35,7 @@ public class Creature implements SimulationEntity, Serializable {
     }
 
     public Creature() {
-        this(null, CreatureConfig.baseEnergy, CreatureConfig.baseHunger);
+        this(null, App.getSimManager().getSettings().getBaseEnergy(), App.getSimManager().getSettings().getBaseHunger());
     }
 
     public Creature(final Creature creature) {
@@ -65,11 +67,11 @@ public class Creature implements SimulationEntity, Serializable {
     }
 
     private void setEnergy(final float energy) {
-        this.energy = (this.energy >= 0) ? energy : CreatureConfig.baseEnergy;
+        this.energy = (this.energy >= 0) ? energy : App.getSimManager().getSettings().getBaseEnergy();
     }
 
     private void setHunger(final float hunger) {
-        this.hunger = (this.hunger >= 0) ? hunger : CreatureConfig.baseHunger;
+        this.hunger = (this.hunger >= 0) ? hunger : App.getSimManager().getSettings().getBaseHunger();
     }
 
     private void setAlive(final boolean alive) { this.alive = alive; }
@@ -100,7 +102,7 @@ public class Creature implements SimulationEntity, Serializable {
     }
 
     private boolean canReproduce() {
-        return this.energy >= CreatureConfig.reproductionThreshold;
+        return this.energy >= App.getSimManager().getSettings().getReproductionThreshold();
     }
 
     @Override
@@ -108,13 +110,13 @@ public class Creature implements SimulationEntity, Serializable {
         if (!isAlive()) return;
 
         //Movimento
-        energy -= (moving) ? CreatureConfig.energyLossPerMove : CreatureConfig.energyLossPerTick;
+        energy -= (moving) ? App.getSimManager().getSettings().getEnergyLossPerMove() : App.getSimManager().getSettings().getEnergyLossPerTick();
         setMoving(false);
 
         //Riproduzione
         if (canReproduce()) {
-            World.preCreatures.add(new PreCreature(CreatureConfig.pregnancyTicks, this));
-            setEnergy(this.energy-CreatureConfig.reproductionCost);
+            World.preCreatures.add(new PreCreature((int) App.getSimManager().getSettings().getPregnancyTicks(), this));
+            setEnergy(this.energy-App.getSimManager().getSettings().getReproductionCost());
         }
 
         //Morte

@@ -1,11 +1,13 @@
 package managers;
 
-import configuration.SimulationConfig;
+import configuration.Settings;
+import core.App;
 import entities.World;
 
 import java.io.*;
 
 public class SimulationManager implements Runnable, Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     //Sim attributes
@@ -17,9 +19,13 @@ public class SimulationManager implements Runnable, Serializable {
 
     private World world;
 
+    private Settings settings;
+
     private transient Thread simulationThread;
 
     public SimulationManager() {
+
+        settings = new Settings();
     }
 
     //MAIN METHODS
@@ -36,7 +42,7 @@ public class SimulationManager implements Runnable, Serializable {
             tickCount++;
 
             try {
-                Thread.sleep(SimulationConfig.tickDuration);
+                Thread.sleep((long) (App.getSimManager().getSettings().getTickDuration() / App.getSimManager().getSettings().getSpeedMultiplier()));
             }catch (InterruptedException e) {
                 break;
             }
@@ -156,5 +162,9 @@ public class SimulationManager implements Runnable, Serializable {
         this.tickCount = manager.tickCount;
         this.initialized = manager.initialized;
         this.ended = false;
+    }
+
+    public Settings getSettings() {
+        return settings;
     }
 }
