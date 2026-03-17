@@ -2,7 +2,7 @@ package managers;
 
 import configuration.Settings;
 import core.App;
-import entities.World;
+import entities.map.World;
 
 import java.io.*;
 

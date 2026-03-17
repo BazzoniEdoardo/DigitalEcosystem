@@ -1,6 +1,6 @@
 package entities.movement;
 
-import entities.Food;
+import entities.population.Food;
 
 import java.io.Serializable;
 

@@ -1,7 +1,7 @@
 package managers;
 
 import core.App;
-import entities.Food;
+import entities.population.Food;
 import entities.population.Creature;
 import stats.SimulationSnapshot;
 import stats.SimulationStats;
@@ -505,5 +505,24 @@ public class StatsManager {
     private static String formatDuration(long ms) {
         long s = ms / 1000, m = s / 60, h = m / 60;
         return String.format("%02d:%02d:%02d.%03d", h, m % 60, s % 60, ms % 1000);
+    }
+
+
+    public static int getTickCount() {
+        return snapshots.size();
+    }
+
+    public static SimulationSnapshot getLatestSnapshot() {
+        if (snapshots.isEmpty()) return null;
+        return snapshots.getLast();
+    }
+
+    public static List<SimulationSnapshot> getSnapshotsCopy() {
+        return new ArrayList<>(snapshots);
+    }
+
+    public static long getCurrentDurationMs() {
+        if (simulationStartMs == 0) return 0;
+        return System.currentTimeMillis() - simulationStartMs;
     }
 }

@@ -1,7 +1,7 @@
 package core;
 
 import configuration.ApplicationConfig;
-import entities.World;
+import entities.map.World;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -9,10 +9,10 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import managers.SimulationManager;
 import render.SimulationRenderer;
+import ui.SidePanel;
 import ui.UiManager;
 
 public class App extends Application {
@@ -35,12 +35,12 @@ public class App extends Application {
         final Canvas canvas = UiManager.createCanvas();
         final MenuBar menuBar = UiManager.createMenuBar(simulation, stage);
         final ToolBar toolBar = UiManager.createToolBar(simulation);
-        final HBox sidePanel = UiManager.createSidePanel(simulation);
+        SidePanel sidePanel = new SidePanel();
 
         layoutManager.setTop(menuBar);
         layoutManager.setCenter(canvas);
         layoutManager.setBottom(toolBar);
-        layoutManager.setLeft(sidePanel);
+        layoutManager.setLeft(sidePanel.getRoot());
 
         final Scene scene = new Scene(layoutManager, ApplicationConfig.WIDTH, ApplicationConfig.HEIGHT);
 
@@ -50,7 +50,17 @@ public class App extends Application {
         stage.show();
 
         //Application Loop
-        SimulationRenderer renderer = new SimulationRenderer(canvas);
+
+        final AnimationTimer timer = getAnimationTimer(canvas, sidePanel, simulation);
+
+        timer.start();
+
+        stage.setOnCloseRequest(e -> simulation.end());
+
+    }
+
+    private static AnimationTimer getAnimationTimer(Canvas canvas, SidePanel sidePanel, SimulationManager simulation) {
+        SimulationRenderer renderer = new SimulationRenderer(canvas, sidePanel);
 
         //Simulation Loop
         Thread simulationThread = new Thread(simulation);
@@ -67,11 +77,7 @@ public class App extends Application {
                 renderer.render(simulation.getWorld());
             }
         };
-
-        timer.start();
-
-        stage.setOnCloseRequest(e -> simulation.end());
-
+        return timer;
     }
 
     public static void main(String[] args) throws InterruptedException {

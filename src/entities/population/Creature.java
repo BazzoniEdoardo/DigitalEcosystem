@@ -2,18 +2,20 @@ package entities.population;
 
 import configuration.RandomConfig;
 import core.App;
-import entities.Food;
 import entities.SimulationEntity;
-import entities.World;
+import entities.map.World;
 import entities.movement.Position;
 import managers.EntityManager;
-import managers.StatsManager;
+import render.entities.AbstractRenderedEntity;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
-public class Creature implements SimulationEntity, Serializable {
+public class Creature extends AbstractRenderedEntity implements SimulationEntity, Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -42,6 +44,7 @@ public class Creature implements SimulationEntity, Serializable {
         this(creature.getPosition(), creature.getEnergy(), creature.getHunger());
     }
 
+    @Override
     public int getId() {
         return id;
     }
@@ -80,7 +83,7 @@ public class Creature implements SimulationEntity, Serializable {
 
     public void eat(final Food food) {
         this.energy += food.getNutrition();
-        StatsManager.printFoodAlert(this, food);
+        //StatsManager.printFoodAlert(this, food);
     }
 
     public SimulationEntity clone() {
@@ -145,5 +148,27 @@ public class Creature implements SimulationEntity, Serializable {
                 ", energy=" + energy +
                 ", hunger=" + hunger +
                 '}';
+    }
+
+    @Override
+    public SimulationEntity getEntity() {
+        return this;
+    }
+
+    @Override
+    public Map<String, String> getInfo() {
+        Map<String, String> info = new HashMap<>();
+        info.put("ID",        String.valueOf(id));
+        info.put("Position",  position.x() + ", " + position.y());
+        info.put("Energy",    String.format("%.2f", energy));
+        info.put("Hunger",    String.format("%.2f", hunger));
+        info.put("Alive",     String.valueOf(alive));
+        info.put("Moving",    String.valueOf(moving));
+        return info;
+    }
+
+    @Override
+    public String getEntityTypeName() {
+        return "Creature";
     }
 }

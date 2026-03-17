@@ -37,6 +37,11 @@ public class PreCreature implements SimulationEntity, Serializable {
     }
 
     @Override
+    public int getId() {
+        return 0;
+    }
+
+    @Override
     public void update() {
         setDaysTillBorn(daysTillBorn-1);
     }

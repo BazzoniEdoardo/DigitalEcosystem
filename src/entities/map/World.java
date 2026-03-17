@@ -1,12 +1,14 @@
-package entities;
+package entities.map;
 
 import builders.CreatureBuilder;
 import builders.FoodBuilder;
 import configuration.RandomConfig;
 import core.App;
+import entities.SimulationEntity;
 import entities.movement.MoveResult;
 import entities.movement.Position;
 import entities.population.Creature;
+import entities.population.Food;
 import entities.population.PreCreature;
 import managers.StatsManager;
 
@@ -307,6 +309,11 @@ public class World implements SimulationEntity, Serializable {
             addCreature(builder.build());
             StatsManager.notifyCreatureBorn(); // <-- AGGIUNGERE
         }
+    }
+
+    @Override
+    public int getId() {
+        return -1;
     }
 
     @Override

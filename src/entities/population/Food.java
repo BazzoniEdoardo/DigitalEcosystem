@@ -1,16 +1,22 @@
-package entities;
+package entities.population;
 
 import core.App;
+import entities.SimulationEntity;
 import entities.movement.Position;
+import managers.EntityManager;
+import render.entities.AbstractRenderedEntity;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
-public class Food implements SimulationEntity, Serializable {
+public class Food extends AbstractRenderedEntity implements SimulationEntity, Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    private final int id;
     protected float nutrition;
     protected boolean expired;
 
@@ -20,10 +26,16 @@ public class Food implements SimulationEntity, Serializable {
         setPosition(position);
         setNutrition(nutrition);
         setExpired(false);
+        this.id = EntityManager.nextId();
     }
 
     public Food() {
         this(new Position(0, 0), App.getSimManager().getSettings().getBaseNutrition());
+    }
+
+    @Override
+    public SimulationEntity getEntity() {
+        return this;
     }
 
     public Food(final Food food) {
@@ -52,6 +64,11 @@ public class Food implements SimulationEntity, Serializable {
 
     private void setPosition(final Position position) {
         this.position = (position != null) ? position : new Position(0, 0);
+    }
+
+    @Override
+    public int getId() {
+        return id;
     }
 
     @Override
@@ -88,5 +105,20 @@ public class Food implements SimulationEntity, Serializable {
                 ", expired=" + expired +
                 ", position=" + position +
                 '}';
+    }
+
+    @Override
+    public Map<String, String> getInfo() {
+        Map<String, String> info = new HashMap<>();
+        info.put("ID",        String.valueOf(id));
+        info.put("Position",  position.x() + ", " + position.y());
+        info.put("Nutrition", String.format("%.2f", nutrition));
+        info.put("Expired",   String.valueOf(expired));
+        return info;
+    }
+
+    @Override
+    public String getEntityTypeName() {
+        return "Food";
     }
 }

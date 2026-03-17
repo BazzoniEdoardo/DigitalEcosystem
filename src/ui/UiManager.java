@@ -134,12 +134,6 @@ public class UiManager {
         return new Canvas(ApplicationConfig.WIDTH, ApplicationConfig.HEIGHT - 100);
     }
 
-    public static HBox createSidePanel(final SimulationManager simulationManager) {
-        final Label currentEntity = new Label("Current Entity: ");
-
-        return new HBox(200, currentEntity);
-    }
-
     private static GridPane createSettingsGrid() {
         GridPane grid = new GridPane();
         grid.setHgap(10);
@@ -159,33 +153,13 @@ public class UiManager {
     //WINDOW COMPONENTS
     private static void openStatisticsWindow() {
 
-        final Stage stage = new Stage();
-        stage.setAlwaysOnTop(true);
-
-        final VBox layoutManager = new VBox();
-        layoutManager.getChildren().add(new Label("Statistics here"));
-
-        final Scene scene = new Scene(layoutManager, 720, 405);
-
-        stage.setTitle("Statistics");
-        stage.setScene(scene);
-        stage.show();
+        new StatisticsWindow().show();
 
     }
 
     private static void openChartsWindow() {
 
-        final Stage stage = new Stage();
-        stage.setAlwaysOnTop(true);
-
-        final VBox layoutManager = new VBox();
-        layoutManager.getChildren().add(new Label("Charts here"));
-
-        final Scene scene = new Scene(layoutManager, 720, 405);
-
-        stage.setTitle("Charts");
-        stage.setScene(scene);
-        stage.show();
+        new ChartsWindow().show();
 
     }
 
