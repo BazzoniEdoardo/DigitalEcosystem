@@ -5,13 +5,13 @@ import core.App;
 import entities.SimulationEntity;
 import entities.map.World;
 import entities.movement.Position;
+import entities.population.genetics.DNA;
 import managers.EntityManager;
 import render.entities.AbstractRenderedEntity;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -20,6 +20,7 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
     private static final long serialVersionUID = 1L;
 
     //Le statistiche saranno delegate ad una classe DNA
+    protected final DNA dna;
 
     protected final int id;
     protected Position position;
@@ -30,6 +31,16 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
 
     public Creature(final Position position, final float energy, final float hunger) {
         this.id = EntityManager.nextId();
+        this.dna = new DNA();
+        setPosition(position);
+        setEnergy(energy);
+        setHunger(hunger);
+        setAlive(true);
+    }
+
+    public Creature(final Position position, final float energy, final float hunger, final DNA dna) {
+        this.id = EntityManager.nextId();
+        this.dna = dna.reproduce();
         setPosition(position);
         setEnergy(energy);
         setHunger(hunger);
@@ -41,7 +52,7 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
     }
 
     public Creature(final Creature creature) {
-        this(creature.getPosition(), creature.getEnergy(), creature.getHunger());
+        this(creature.getPosition(), creature.getEnergy(), creature.getHunger(), creature.getDna());
     }
 
     @Override
@@ -64,6 +75,10 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
     public boolean isAlive() { return alive; }
 
     public boolean isMoving() { return moving; }
+
+    public DNA getDna() {
+        return dna;
+    }
 
     private void setPosition(final Position position) {
         this.position = (position != null) ? position : new Position(0, 0);
