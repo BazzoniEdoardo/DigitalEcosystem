@@ -5,7 +5,7 @@ public class MovementGene extends AbstractGene<MovementGene>{
     public MovementGene() {
         setGeneAttribute("speed", 0f);                //Di quante caselle si puo' muovere al secondo
         setGeneAttribute("agility", 0f);              //Rispetto al movimento precedente, puo' muoversi solo nelle n caselle a partire da quella direzione. Se va a destra e agility=3, lui puo' muoversi solo a destra, o in diagonale altodestra o bassodestra
-        setGeneAttribute("energyEfficiency", 0f);     //Riduzione nel costo di movimento base
+        setGeneAttribute("energyEfficiency", 0f);     //Riduzione nel costo di movimento base           //FATTO
     }
 
     public MovementGene(final float speed, final float agility, final float energyEfficiency) {

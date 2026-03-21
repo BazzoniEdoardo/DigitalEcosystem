@@ -129,8 +129,8 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
 
         dna.update();
 
-        //Movimento
-        energy -= (moving) ? App.getSimManager().getSettings().getEnergyLossPerMove() : App.getSimManager().getSettings().getEnergyLossPerTick();
+        //Movimento, utilizzo del DNA per gestire, qui dovrei separare la logica e creare delle funzioni generali, tipo updateMovement ecc..., ma per ora va bene cosi
+        energy -= ((moving) ? App.getSimManager().getSettings().getEnergyLossPerMove() : App.getSimManager().getSettings().getEnergyLossPerTick()) / dna.getMovementGene().getGeneAttribute("energyEfficiency");
         setMoving(false);
 
         //Riproduzione
