@@ -94,7 +94,7 @@ public class World implements SimulationEntity, Serializable {
         return creatures;
     }
 
-    public ArrayList<Food> getFoods() {
+    public synchronized ArrayList<Food> getFoods() {
         return foods;
     }
 

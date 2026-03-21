@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
+//TODO: SISTEMARE IL MOVIMENTO CHE ATTUALMENTE HA UN DESIGN ORRIBILE (AGGIUNGERE RIFERIMENTO A WORLD DENTRO CREATURE MOLTO SEMPLICEMENTE)
 public class Creature extends AbstractRenderedEntity implements SimulationEntity, Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
@@ -97,7 +98,7 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
     private void setMoving(final boolean moving) { this.moving = moving; }
 
     public void eat(final Food food) {
-        this.energy += food.getNutrition();
+        this.energy = Math.clamp(energy + food.getNutrition() * dna.getMetabolismGene().getGeneAttribute("digestionMultiplier"), 0, dna.getMetabolismGene().getGeneAttribute("maxEnergy"));;
         //StatsManager.printFoodAlert(this, food);
     }
 
@@ -131,6 +132,8 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
 
         //Movimento, utilizzo del DNA per gestire, qui dovrei separare la logica e creare delle funzioni generali, tipo updateMovement ecc..., ma per ora va bene cosi
         energy -= ((moving) ? App.getSimManager().getSettings().getEnergyLossPerMove() : App.getSimManager().getSettings().getEnergyLossPerTick()) / dna.getMovementGene().getGeneAttribute("energyEfficiency");
+        hunger = Math.clamp(hunger-dna.getMetabolismGene().getGeneAttribute("baseHungerConsumption"), 0, dna.getMetabolismGene().getGeneAttribute("maxHunger"));
+
         setMoving(false);
 
         //Riproduzione
