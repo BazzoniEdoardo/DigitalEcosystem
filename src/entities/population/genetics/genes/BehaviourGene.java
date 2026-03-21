@@ -41,4 +41,9 @@ public class BehaviourGene extends AbstractGene<BehaviourGene> {
         return new BehaviourGene(this);
     }
 
+    @Override
+    public void update() {
+
+    }
+
 }

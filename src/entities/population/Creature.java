@@ -11,7 +11,7 @@ import render.entities.AbstractRenderedEntity;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -120,12 +120,14 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
     }
 
     private boolean canReproduce() {
-        return this.energy >= App.getSimManager().getSettings().getReproductionThreshold();
+        return this.energy >= dna.getReproductionGene().getGeneAttribute("reproductionThreshold");
     }
 
     @Override
     public void update() {
         if (!isAlive()) return;
+
+        dna.update();
 
         //Movimento
         energy -= (moving) ? App.getSimManager().getSettings().getEnergyLossPerMove() : App.getSimManager().getSettings().getEnergyLossPerTick();
@@ -133,14 +135,28 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
 
         //Riproduzione
         if (canReproduce()) {
-            World.preCreatures.add(new PreCreature((int) App.getSimManager().getSettings().getPregnancyTicks(), this));
-            setEnergy(this.energy-App.getSimManager().getSettings().getReproductionCost());
+            reproduce();
         }
 
         //Morte
         if (energy <= 0) {
             setAlive(false);
         }
+
+    }
+
+    protected void reproduce() {
+        //Restart del cooldown per la riproduzione
+        dna.getReproductionGene().restartReproductionCooldown();
+
+        //Scelta di quanti figli ottiene
+        final int childrenNumber = (int) (RandomConfig.random.nextFloat(1, 2) * dna.getReproductionGene().getGeneAttribute("childrenMultiplier"));
+
+        for (int i = 0; i < childrenNumber; i++) {
+            World.preCreatures.add(new PreCreature((int) App.getSimManager().getSettings().getPregnancyTicks(), this));
+            setEnergy(this.energy-App.getSimManager().getSettings().getReproductionCost());
+        }
+
 
     }
 
@@ -172,13 +188,13 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
 
     @Override
     public Map<String, String> getInfo() {
-        Map<String, String> info = new HashMap<>();
-        info.put("ID",        String.valueOf(id));
-        info.put("Position",  position.x() + ", " + position.y());
-        info.put("Energy",    String.format("%.2f", energy));
-        info.put("Hunger",    String.format("%.2f", hunger));
-        info.put("Alive",     String.valueOf(alive));
-        info.put("Moving",    String.valueOf(moving));
+        final Map<String, String> info = new LinkedHashMap<>();
+        info.put("ID",       String.valueOf(id));
+        info.put("Position", String.format("%.0f, %.0f", (double) position.x(), (double) position.y()));
+        info.put("Energy",   String.format("%.2f", energy));
+        info.put("Hunger",   String.format("%.2f", hunger));
+        info.put("Alive",    String.valueOf(alive));
+        info.put("Moving",   String.valueOf(moving));
         return info;
     }
 

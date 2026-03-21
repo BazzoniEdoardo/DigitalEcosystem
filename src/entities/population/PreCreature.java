@@ -3,9 +3,11 @@ package entities.population;
 import core.App;
 import entities.SimulationEntity;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 public class PreCreature implements SimulationEntity, Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     protected int daysTillBorn;
@@ -38,7 +40,7 @@ public class PreCreature implements SimulationEntity, Serializable {
 
     @Override
     public int getId() {
-        return 0;
+        return parent.getId();
     }
 
     @Override
@@ -47,7 +49,7 @@ public class PreCreature implements SimulationEntity, Serializable {
     }
 
     @Override
-    public SimulationEntity clone() {
+    public PreCreature clone() {
         return new PreCreature(this);
     }
 }

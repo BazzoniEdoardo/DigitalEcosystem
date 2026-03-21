@@ -1,6 +1,5 @@
 package core;
 
-import configuration.ApplicationConfig;
 import entities.map.World;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
@@ -9,10 +8,12 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import managers.SimulationManager;
 import render.SimulationRenderer;
 import ui.SidePanel;
+import ui.SimTheme;
 import ui.UiManager;
 
 public class App extends Application {
@@ -22,41 +23,39 @@ public class App extends Application {
     private static SimulationManager simManager;
 
     @Override
-    public void start(Stage stage) {
+    public void start(final Stage stage) {
 
-        //Creazione della simulazione
-        SimulationManager simulation = new SimulationManager();
+        // Creazione della simulazione
+        final SimulationManager simulation = new SimulationManager();
         setSimManager(simulation);
 
-        //Manager del layout
-        final BorderPane layoutManager = new BorderPane();
+        final BorderPane root = new BorderPane();
 
-        //Creazione della UI
-        final Canvas canvas = UiManager.createCanvas();
+        final StackPane canvasContainer = new StackPane();
+        final Canvas canvas = UiManager.createDynamicCanvas(canvasContainer);
+        canvasContainer.getChildren().add(canvas);
+
         final MenuBar menuBar = UiManager.createMenuBar(simulation, stage);
         final ToolBar toolBar = UiManager.createToolBar(simulation);
-        SidePanel sidePanel = new SidePanel();
+        final SidePanel sidePanel = new SidePanel();
 
-        layoutManager.setTop(menuBar);
-        layoutManager.setCenter(canvas);
-        layoutManager.setBottom(toolBar);
-        layoutManager.setLeft(sidePanel.getRoot());
+        root.setTop(menuBar);
+        root.setCenter(canvasContainer);
+        root.setBottom(toolBar);
+        root.setRight(sidePanel.getRoot());
 
-        final Scene scene = new Scene(layoutManager, ApplicationConfig.WIDTH, ApplicationConfig.HEIGHT);
+        final Scene scene = new Scene(root, 1280, 800);
+        SimTheme.applyUri(scene, SimTheme.buildDataUri());
 
         stage.setTitle("DigitalEcosystem Simulation");
         stage.setScene(scene);
         stage.centerOnScreen();
         stage.show();
 
-        //Application Loop
-
-        final AnimationTimer timer = getAnimationTimer(canvas, sidePanel, simulation);
-
+        final AnimationTimer timer = buildLoop(canvas, sidePanel, simulation);
         timer.start();
 
         stage.setOnCloseRequest(e -> simulation.end());
-
     }
 
     private static AnimationTimer getAnimationTimer(Canvas canvas, SidePanel sidePanel, SimulationManager simulation) {
@@ -78,6 +77,25 @@ public class App extends Application {
             }
         };
         return timer;
+    }
+
+    private static AnimationTimer buildLoop(final Canvas canvas,
+                                            final SidePanel sidePanel,
+                                            final SimulationManager simulation) {
+        final SimulationRenderer renderer = new SimulationRenderer(canvas, sidePanel);
+
+        final Thread simThread = new Thread(simulation);
+        simThread.setDaemon(true);
+        simThread.start();
+
+        return new AnimationTimer() {
+            @Override
+            public void handle(final long now) {
+                final World world = simulation.getWorld();
+                if (world == null) return;
+                renderer.render(world);
+            }
+        };
     }
 
     public static void main(String[] args) throws InterruptedException {

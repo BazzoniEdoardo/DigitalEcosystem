@@ -1,15 +1,12 @@
 package ui;
 
-import configuration.ApplicationConfig;
 import configuration.Settings;
 import core.App;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import managers.SimulationManager;
@@ -19,25 +16,26 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import static ui.SimTheme.*;
+
 public class UiManager {
 
     //UI COMPONENTS
-    public static MenuBar createMenuBar(final SimulationManager simulationManager, final Stage stage) {
-        //First Menu
-        final Menu fileMenu = new Menu("File");
-        final MenuItem open = new MenuItem("Open Simulation");
-        final MenuItem save = new MenuItem("Save Simulation");
-        final MenuItem exportData = new MenuItem("Export Simulation Data");
+    public static MenuBar createMenuBar(final SimulationManager simulationManager,
+                                        final Stage stage) {
+        // File
+        final Menu fileMenu   = new Menu("File");
+        final MenuItem open   = new MenuItem("Open…");
+        final MenuItem save   = new MenuItem("Save…");
+        final MenuItem export = new MenuItem("Export Data");
 
         open.setOnAction(e -> {
             final FileChooser fc = new FileChooser();
-
             fc.setTitle("Load Simulation");
-            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Simulation files", "*.sim"));
-
+            fc.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("Simulation files", "*.sim"));
             final File file = fc.showOpenDialog(stage);
             if (file == null) return;
-
             SimulationManager loaded = SimulationManager.loadFromFile(file);
             if (loaded != null) {
                 simulationManager.stopSimulation();
@@ -48,90 +46,94 @@ public class UiManager {
 
         save.setOnAction(e -> {
             final FileChooser fc = new FileChooser();
-
             fc.setTitle("Save Simulation");
-            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Simulation files", "*.sim"));
-            fc.setInitialFileName("simulation_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".sim");
-
+            fc.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("Simulation files", "*.sim"));
+            fc.setInitialFileName("simulation_" +
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                    + ".sim");
             final File file = fc.showSaveDialog(stage);
             if (file == null) return;
-
             simulationManager.saveToFile(file);
         });
 
-        exportData.setOnAction(e -> StatsManager.printFinalReport());
+        export.setOnAction(e -> StatsManager.printFinalReport());
+        fileMenu.getItems().addAll(open, save, new SeparatorMenuItem(), export);
 
-        fileMenu.getItems().addAll(open, save, exportData);
-
-        //Second Menu
-        final Menu configMenu = new Menu("Configuration");
-        final MenuItem applicationConfig = new MenuItem("Settings");
-        final MenuItem simulationConfig = new MenuItem("Simulation Settings");
-        final MenuItem worldConfig = new MenuItem("World Settings");
-        final MenuItem creatureConfig = new MenuItem("Creature Settings");
-        final MenuItem foodConfig = new MenuItem("Food Settings");
-
-        configMenu.getItems().addAll(applicationConfig, simulationConfig, worldConfig, creatureConfig, foodConfig);
+        // Configuration
+        final Menu configMenu            = new Menu("Config");
+        final MenuItem applicationConfig = new MenuItem("Application");
+        final MenuItem simulationConfig  = new MenuItem("Simulation");
+        final MenuItem worldConfig       = new MenuItem("World");
+        final MenuItem creatureConfig    = new MenuItem("Creatures");
+        final MenuItem foodConfig        = new MenuItem("Food");
 
         applicationConfig.setOnAction(e -> openSettingsWindow(stage));
         simulationConfig.setOnAction(e -> openSimulationSettingsWindow(stage));
         worldConfig.setOnAction(e -> openWorldSettingsWindow(stage));
         creatureConfig.setOnAction(e -> openCreatureSettingsWindow(stage));
         foodConfig.setOnAction(e -> openFoodSettingsWindow(stage));
+        configMenu.getItems().addAll(
+                applicationConfig, simulationConfig,
+                new SeparatorMenuItem(), worldConfig, creatureConfig, foodConfig);
 
-        //Third Menu
-        final Menu viewMenu = new Menu("View");
-        final MenuItem stats = new MenuItem("Statistics");
+        // View
+        final Menu viewMenu   = new Menu("View");
+        final MenuItem stats  = new MenuItem("Statistics");
         final MenuItem graphs = new MenuItem("Graphs");
-
         stats.setOnAction(e -> openStatisticsWindow());
         graphs.setOnAction(e -> openChartsWindow());
-
         viewMenu.getItems().addAll(stats, graphs);
 
-        //Fourth Menu
-        final Menu stateMenu = new Menu("State");
-        final MenuItem play = new MenuItem("Play");
-        final MenuItem pause = new MenuItem("Pause");
-        final MenuItem end = new MenuItem("End");
-        final MenuItem restart = new MenuItem("Restart");
-
+        // State
+        final Menu stateMenu    = new Menu("State");
+        final MenuItem play     = new MenuItem("Play");
+        final MenuItem pause    = new MenuItem("Pause");
+        final MenuItem end      = new MenuItem("End");
+        final MenuItem restart  = new MenuItem("Restart");
         play.setOnAction(e -> simulationManager.startSimulation());
         pause.setOnAction(e -> simulationManager.pauseSimulation());
         end.setOnAction(e -> simulationManager.stopSimulation());
         restart.setOnAction(e -> simulationManager.restartSimulation());
-
-        stateMenu.getItems().addAll(play, pause, end, restart);
+        stateMenu.getItems().addAll(play, pause, new SeparatorMenuItem(), end, restart);
 
         return new MenuBar(fileMenu, configMenu, stateMenu, viewMenu);
-
     }
 
     public static ToolBar createToolBar(final SimulationManager simulationManager) {
-
-        final Button play = new Button("Play");
-        final Button pause = new Button("Pause");
-        final Button end = new Button("End");
-        final Button restart = new Button("Restart");
+        final Button play    = new Button("▶  Play");
+        final Button pause   = new Button("⏸  Pause");
+        final Button end     = new Button("■  End");
+        final Button restart = new Button("↺  Restart");
 
         play.setOnAction(e -> simulationManager.startSimulation());
         pause.setOnAction(e -> simulationManager.pauseSimulation());
         end.setOnAction(e -> simulationManager.stopSimulation());
         restart.setOnAction(e -> simulationManager.restartSimulation());
 
+        final Label speedLabel = new Label("SPEED");
+        speedLabel.setStyle(FX_FONT + "-fx-font-size:10px; -fx-text-fill:" + C_TEXT_DIM + ";");
+
         final Slider speed = new Slider(0.1, 10, 1);
-        final Label speedLabel = new Label("Speed");
-
+        speed.setPrefWidth(120);
         speed.setValue(App.getSimManager().getSettings().getSpeedMultiplier());
-        speed.valueProperty().addListener((obs, oldVal, newVal) ->
-                App.getSimManager().getSettings().setSpeedMultiplier(newVal.floatValue()));
+        speed.valueProperty().addListener((obs, o, n) ->
+                App.getSimManager().getSettings().setSpeedMultiplier(n.floatValue()));
 
+        final Label speedVal = new Label("1.0×");
+        speedVal.setStyle(FX_FONT + "-fx-font-size:11px; -fx-text-fill:" + C_TEXT + "; -fx-min-width:36px;");
+        speed.valueProperty().addListener((obs, o, n) ->
+                speedVal.setText(String.format("%.1f×", n.doubleValue())));
 
-        return new ToolBar(play, pause, end, restart, new Separator(), speedLabel, speed);
+        return new ToolBar(play, pause, end, restart,
+                new Separator(), speedLabel, speed, speedVal);
     }
 
-    public static Canvas createCanvas() {
-        return new Canvas(ApplicationConfig.WIDTH, ApplicationConfig.HEIGHT - 100);
+    public static Canvas createDynamicCanvas(final Pane container) {
+        final Canvas canvas = new Canvas();
+        canvas.widthProperty().bind(container.widthProperty());
+        canvas.heightProperty().bind(container.heightProperty());
+        return canvas;
     }
 
     private static GridPane createSettingsGrid() {
@@ -164,34 +166,26 @@ public class UiManager {
     }
 
     private static void openSettingsWindow(final Stage mainStage) {
-        final Stage stage = new Stage();
-        stage.setAlwaysOnTop(true);
+        final Stage stage = buildWindow("Application Settings", 360, 160);
 
-        final VBox layout = new VBox(10);
-        layout.setPadding(new Insets(15));
-
-        final CheckBox fullscreen = new CheckBox("Fullscreen");
+        final CheckBox fullscreen = new CheckBox("Fullscreen mode");
         fullscreen.setSelected(mainStage.isFullScreen());
         fullscreen.setOnAction(e -> mainStage.setFullScreen(fullscreen.isSelected()));
 
-        layout.getChildren().add(fullscreen);
-
-        stage.setTitle("Settings");
-        stage.setScene(new Scene(layout, 400, 200));
+        final VBox layout = panelLayout(fullscreen);
+        final Scene scene = buildScene(layout, 360, 160);
+        stage.setScene(scene);
         stage.show();
     }
 
     private static void openSimulationSettingsWindow(final Stage mainStage) {
         final Settings s = App.getSimManager().getSettings();
-        final Stage stage = new Stage();
-        stage.setAlwaysOnTop(true);
+        final Stage stage = buildWindow("Simulation Settings", 340, 140);
 
-        GridPane grid = createSettingsGrid();
+        final GridPane grid = settingsGrid();
+        final TextField speedMultiplier = row(grid, 0, "Speed Multiplier", String.valueOf(s.getSpeedMultiplier()));
 
-        TextField speedMultiplier = addRow(grid, 0, "Speed Multiplier:", String.valueOf(s.getSpeedMultiplier()));
-
-        Button apply = new Button("Apply");
-        apply.setOnAction(e -> {
+        final Button apply = applyButton(() -> {
             try {
                 s.setSpeedMultiplier(Float.parseFloat(speedMultiplier.getText()));
             } catch (NumberFormatException ex) {
@@ -199,33 +193,26 @@ public class UiManager {
             }
         });
 
-        VBox layout = new VBox(10, grid, apply);
-        layout.setPadding(new Insets(10));
-
-        stage.setTitle("Simulation Settings");
-        stage.setScene(new Scene(layout, 350, 150));
+        stage.setScene(buildScene(panelLayout(sectionLabel("Simulation"), grid, apply), 340, 140));
         stage.show();
     }
 
     private static void openWorldSettingsWindow(final Stage mainStage) {
         final Settings s = App.getSimManager().getSettings();
-        final Stage stage = new Stage();
-        stage.setAlwaysOnTop(true);
+        final Stage stage = buildWindow("World Settings", 340, 290);
 
-        GridPane grid = createSettingsGrid();
+        final GridPane grid = settingsGrid();
+        final TextField width       = row(grid, 0, "Width",           String.valueOf(s.getWidth()));
+        final TextField height      = row(grid, 1, "Height",          String.valueOf(s.getHeight()));
+        final TextField basePop     = row(grid, 2, "Base Population", String.valueOf(s.getBasePopulation()));
+        final TextField baseFood    = row(grid, 3, "Base Food",       String.valueOf(s.getBaseFood()));
+        final TextField foodPerTick = row(grid, 4, "Food Per Tick",   String.valueOf(s.getFoodPerTick()));
 
-        TextField width          = addRow(grid, 0, "Width:",            String.valueOf(s.getWidth()));
-        TextField height         = addRow(grid, 1, "Height:",           String.valueOf(s.getHeight()));
-        TextField basePopulation = addRow(grid, 2, "Base Population:",  String.valueOf(s.getBasePopulation()));
-        TextField baseFood       = addRow(grid, 3, "Base Food:",        String.valueOf(s.getBaseFood()));
-        TextField foodPerTick    = addRow(grid, 4, "Food Per Tick:",    String.valueOf(s.getFoodPerTick()));
-
-        Button apply = new Button("Apply");
-        apply.setOnAction(e -> {
+        final Button apply = applyButton(() -> {
             try {
                 s.setWidth(Integer.parseInt(width.getText()));
                 s.setHeight(Integer.parseInt(height.getText()));
-                s.setBasePopulation(Integer.parseInt(basePopulation.getText()));
+                s.setBasePopulation(Integer.parseInt(basePop.getText()));
                 s.setBaseFood(Integer.parseInt(baseFood.getText()));
                 s.setFoodPerTick(Float.parseFloat(foodPerTick.getText()));
             } catch (NumberFormatException ex) {
@@ -233,31 +220,24 @@ public class UiManager {
             }
         });
 
-        VBox layout = new VBox(10, grid, apply);
-        layout.setPadding(new Insets(10));
-
-        stage.setTitle("World Settings");
-        stage.setScene(new Scene(layout, 350, 280));
+        stage.setScene(buildScene(panelLayout(sectionLabel("World"), grid, apply), 340, 290));
         stage.show();
     }
 
     private static void openCreatureSettingsWindow(final Stage mainStage) {
         final Settings s = App.getSimManager().getSettings();
-        final Stage stage = new Stage();
-        stage.setAlwaysOnTop(true);
+        final Stage stage = buildWindow("Creature Settings", 340, 390);
 
-        GridPane grid = createSettingsGrid();
+        final GridPane grid = settingsGrid();
+        final TextField baseEnergy            = row(grid, 0, "Base Energy",            String.valueOf(s.getBaseEnergy()));
+        final TextField baseHunger            = row(grid, 1, "Base Hunger",            String.valueOf(s.getBaseHunger()));
+        final TextField energyLossPerTick     = row(grid, 2, "Energy Loss / Tick",     String.valueOf(s.getEnergyLossPerTick()));
+        final TextField energyLossPerMove     = row(grid, 3, "Energy Loss / Move",     String.valueOf(s.getEnergyLossPerMove()));
+        final TextField reproductionThreshold = row(grid, 4, "Reproduction Threshold", String.valueOf(s.getReproductionThreshold()));
+        final TextField reproductionCost      = row(grid, 5, "Reproduction Cost",      String.valueOf(s.getReproductionCost()));
+        final TextField pregnancyTicks        = row(grid, 6, "Pregnancy Ticks",        String.valueOf(s.getPregnancyTicks()));
 
-        TextField baseEnergy             = addRow(grid, 0, "Base Energy:",              String.valueOf(s.getBaseEnergy()));
-        TextField baseHunger             = addRow(grid, 1, "Base Hunger:",              String.valueOf(s.getBaseHunger()));
-        TextField energyLossPerTick      = addRow(grid, 2, "Energy Loss Per Tick:",     String.valueOf(s.getEnergyLossPerTick()));
-        TextField energyLossPerMove      = addRow(grid, 3, "Energy Loss Per Move:",     String.valueOf(s.getEnergyLossPerMove()));
-        TextField reproductionThreshold  = addRow(grid, 4, "Reproduction Threshold:",  String.valueOf(s.getReproductionThreshold()));
-        TextField reproductionCost       = addRow(grid, 5, "Reproduction Cost:",        String.valueOf(s.getReproductionCost()));
-        TextField pregnancyTicks         = addRow(grid, 6, "Pregnancy Ticks:",          String.valueOf(s.getPregnancyTicks()));
-
-        Button apply = new Button("Apply");
-        apply.setOnAction(e -> {
+        final Button apply = applyButton(() -> {
             try {
                 s.setBaseEnergy(Float.parseFloat(baseEnergy.getText()));
                 s.setBaseHunger(Float.parseFloat(baseHunger.getText()));
@@ -271,26 +251,19 @@ public class UiManager {
             }
         });
 
-        VBox layout = new VBox(10, grid, apply);
-        layout.setPadding(new Insets(10));
-
-        stage.setTitle("Creature Settings");
-        stage.setScene(new Scene(layout, 350, 370));
+        stage.setScene(buildScene(panelLayout(sectionLabel("Creatures"), grid, apply), 340, 390));
         stage.show();
     }
 
     private static void openFoodSettingsWindow(final Stage mainStage) {
         final Settings s = App.getSimManager().getSettings();
-        final Stage stage = new Stage();
-        stage.setAlwaysOnTop(true);
+        final Stage stage = buildWindow("Food Settings", 340, 190);
 
-        GridPane grid = createSettingsGrid();
+        final GridPane grid = settingsGrid();
+        final TextField baseNutrition    = row(grid, 0, "Base Nutrition",   String.valueOf(s.getBaseNutrition()));
+        final TextField decaymentPerTick = row(grid, 1, "Decay Per Tick",   String.valueOf(s.getDecaymentPerTick()));
 
-        TextField baseNutrition    = addRow(grid, 0, "Base Nutrition:",    String.valueOf(s.getBaseNutrition()));
-        TextField decaymentPerTick = addRow(grid, 1, "Decayment Per Tick:", String.valueOf(s.getDecaymentPerTick()));
-
-        Button apply = new Button("Apply");
-        apply.setOnAction(e -> {
+        final Button apply = applyButton(() -> {
             try {
                 s.setBaseNutrition(Float.parseFloat(baseNutrition.getText()));
                 s.setDecaymentPerTick(Float.parseFloat(decaymentPerTick.getText()));
@@ -299,17 +272,79 @@ public class UiManager {
             }
         });
 
-        VBox layout = new VBox(10, grid, apply);
-        layout.setPadding(new Insets(10));
-
-        stage.setTitle("Food Settings");
-        stage.setScene(new Scene(layout, 350, 180));
+        stage.setScene(buildScene(panelLayout(sectionLabel("Food"), grid, apply), 340, 190));
         stage.show();
     }
 
-    private static void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, message, ButtonType.OK);
+    private static Stage buildWindow(final String title, final double w, final double h) {
+        final Stage s = new Stage();
+        s.setAlwaysOnTop(true);
+        s.setTitle(title);
+        s.setMinWidth(w);
+        s.setMinHeight(h);
+        s.setResizable(false);
+        return s;
+    }
+
+    private static Scene buildScene(final javafx.scene.Parent root,
+                                    final double w, final double h) {
+        final Scene s = new Scene(root, w, h);
+        SimTheme.applyUri(s, SimTheme.buildDataUri());
+        return s;
+    }
+
+    private static GridPane settingsGrid() {
+        final GridPane g = new GridPane();
+        g.setHgap(12);
+        g.setVgap(8);
+        final ColumnConstraints labelCol = new ColumnConstraints();
+        labelCol.setMinWidth(160);
+        labelCol.setPrefWidth(180);
+        final ColumnConstraints fieldCol = new ColumnConstraints();
+        fieldCol.setPrefWidth(110);
+        g.getColumnConstraints().addAll(labelCol, fieldCol);
+        return g;
+    }
+
+    private static TextField row(final GridPane grid, final int rowIdx,
+                                 final String labelText, final String currentValue) {
+        final Label lbl = new Label(labelText);
+        lbl.setStyle(FX_FONT + "-fx-font-size:11px; -fx-text-fill:" + C_TEXT_DIM + ";");
+        final TextField tf = new TextField(currentValue);
+        tf.setPrefWidth(110);
+        grid.add(lbl, 0, rowIdx);
+        grid.add(tf,  1, rowIdx);
+        return tf;
+    }
+
+    private static Label sectionLabel(final String text) {
+        final Label l = new Label(text.toUpperCase());
+        l.setStyle(FX_FONT
+                + "-fx-font-size:9px; -fx-font-weight:bold; "
+                + "-fx-text-fill:" + C_TEXT_DIM + "; "
+                + "-fx-letter-spacing:2px;");
+        return l;
+    }
+
+    private static Button applyButton(final Runnable action) {
+        final Button b = new Button("Apply");
+        b.setOnAction(e -> action.run());
+        b.setDefaultButton(true);
+        return b;
+    }
+
+    private static VBox panelLayout(final javafx.scene.Node... nodes) {
+        final VBox box = new VBox(12, nodes);
+        box.setPadding(new Insets(18));
+        box.setStyle(FX_BG_BASE);
+        return box;
+    }
+
+    static void showError(final String message) {
+        final Alert alert = new Alert(Alert.AlertType.ERROR, message, ButtonType.OK);
         alert.setHeaderText("Input Error");
+        alert.getDialogPane().getScene().getStylesheets().add(SimTheme.buildDataUri());
         alert.showAndWait();
     }
+
 }

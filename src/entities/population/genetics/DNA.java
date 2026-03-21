@@ -32,6 +32,8 @@ public class DNA {
             this.movementGene = dna.movementGene.mutate(deviation);
             this.perceptionGene = dna.perceptionGene.mutate(deviation);
             this.reproductionGene = dna.reproductionGene.mutate(deviation);
+
+            System.out.println("A DNA has mutated!");
         }else {
             this.behaviourGene = dna.getBehaviourGene().clone();
             this.metabolismGene = dna.getMetabolismGene().clone();
@@ -46,6 +48,10 @@ public class DNA {
         final boolean mutated = mutationRate <= this.reproductionGene.getGeneAttribute("mutationRate");
 
         return new DNA(this, mutated);
+    }
+
+    public void update() {
+        reproductionGene.update();
     }
 
     public BehaviourGene getBehaviourGene() {
@@ -66,5 +72,16 @@ public class DNA {
 
     public ReproductionGene getReproductionGene() {
         return reproductionGene;
+    }
+
+    @Override
+    public String toString() {
+        return "DNA{" +
+                "behaviourGene=" + behaviourGene +
+                ", metabolismGene=" + metabolismGene +
+                ", movementGene=" + movementGene +
+                ", perceptionGene=" + perceptionGene +
+                ", reproductionGene=" + reproductionGene +
+                '}';
     }
 }

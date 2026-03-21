@@ -21,7 +21,7 @@ public abstract class AbstractGene<T extends AbstractGene<T>> implements Gene {
         return geneAttributes;
     }
 
-    public void setGeneAttribute(final String key, final Float attribute) {
+    protected void setGeneAttribute(final String key, final Float attribute) {
         if (key == null || attribute == null) return;
 
         geneAttributes.put(key, attribute);
@@ -38,7 +38,7 @@ public abstract class AbstractGene<T extends AbstractGene<T>> implements Gene {
     public T mutate(final float deviation) {
         final T clone = clone();
 
-        clone.getGenes().replaceAll((key, value) -> RandomConfig.random.nextFloat((float)value - deviation, (float)value + deviation));
+        clone.getGenes().replaceAll((key, value) -> Math.abs(RandomConfig.random.nextFloat((float)value - deviation, (float)value + deviation)));
 
         return clone;
     }

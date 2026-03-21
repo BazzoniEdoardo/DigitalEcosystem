@@ -10,6 +10,7 @@ import entities.movement.Position;
 import entities.population.Creature;
 import entities.population.Food;
 import entities.population.PreCreature;
+import entities.population.genetics.DNA;
 import managers.StatsManager;
 
 import java.io.Serial;
@@ -119,7 +120,8 @@ public class World implements SimulationEntity, Serializable {
             CreatureBuilder builder = new CreatureBuilder()
                     .setEnergy(RandomConfig.random.nextFloat(App.getSimManager().getSettings().getBaseEnergy() - 10, App.getSimManager().getSettings().getBaseEnergy() + 11))
                     .setHunger(RandomConfig.random.nextFloat(App.getSimManager().getSettings().getBaseHunger() - 10, App.getSimManager().getSettings().getBaseHunger() + 11))
-                    .setPosition(new Position(RandomConfig.random.nextInt(0, width), RandomConfig.random.nextInt(0, height)));
+                    .setPosition(new Position(RandomConfig.random.nextInt(0, width), RandomConfig.random.nextInt(0, height)))
+                    .setDna(new DNA());
 
             while (!addCreature(builder.build())) {
                 builder.setPosition(new Position(RandomConfig.random.nextInt(0, width), RandomConfig.random.nextInt(0, height)));
@@ -304,7 +306,8 @@ public class World implements SimulationEntity, Serializable {
             CreatureBuilder builder = new CreatureBuilder()
                     .setEnergy(RandomConfig.random.nextFloat(App.getSimManager().getSettings().getBaseEnergy() - 10, App.getSimManager().getSettings().getBaseEnergy() + 11))
                     .setHunger(RandomConfig.random.nextFloat(App.getSimManager().getSettings().getBaseHunger() - 10, App.getSimManager().getSettings().getBaseHunger() + 11))
-                    .setPosition(firstFreePosition);
+                    .setPosition(firstFreePosition)
+                    .setDna(parent.getDna());
 
             addCreature(builder.build());
             StatsManager.notifyCreatureBorn(); // <-- AGGIUNGERE

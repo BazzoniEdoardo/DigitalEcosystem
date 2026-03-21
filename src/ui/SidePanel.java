@@ -1,184 +1,261 @@
 package ui;
 
+import entities.population.Creature;
+import entities.population.genetics.DNA;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.*;
 import render.entities.AbstractRenderedEntity;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static ui.SimTheme.*;
+
 /**
- * Sidebar che mostra le info dell'entità selezionata nel canvas.
- * Viene aggiornata dal SimulationRenderer tramite showEntity() e clear().
- * Thread-safe: usa Platform.runLater per aggiornamenti dall'AnimationTimer.
+ * Sidebar that shows info for a selected entity.
+ *
+ * Key design decision:
+ *   - Every value-Label stores its exact map-key in userData.
+ *   - updateEntity() walks all labels and refreshes by key lookup — no index math.
+ *   - Gene sections are rebuilt only on showEntity(); they don't change per-tick.
  */
 public class SidePanel {
 
-    private static final String BG_DARK   = "-fx-background-color: #0f1117;";
-    private static final String BG_CARD   = "-fx-background-color: #181c27; -fx-background-radius: 6;";
-    private static final String FONT_MONO = "-fx-font-family: 'Courier New';";
-
-    private static final String COLOR_TEXT    = "#e8eaf6";
-    private static final String COLOR_DIM     = "#6b7280";
-    private static final String COLOR_ACCENT  = "#3d5afe";
-    private static final String COLOR_CREATURE = "#7c9cff";
-    private static final String COLOR_FOOD    = "#5dbcb0";
-    private static final String COLOR_BORDER  = "#232840";
-
-    private final VBox root;
-    private final VBox contentBox;
+    private final VBox  root;
+    private final VBox  contentBox;
     private final Label titleLabel;
-    private final Label noSelectionLabel;
+    private final Label hintLabel;
 
     public SidePanel() {
-        root = new VBox(8);
-        root.setStyle(BG_DARK);
-        root.setPadding(new Insets(12, 10, 12, 10));
-        root.setPrefWidth(180);
-        root.setMinWidth(160);
+        root = new VBox(0);
+        root.setStyle(FX_BG_BASE);
+        root.setPrefWidth(210);
+        root.setMinWidth(190);
 
-        // Header fisso
-        Label header = new Label("ENTITY INFO");
-        header.setStyle(FONT_MONO
-                + "-fx-font-size: 10; -fx-font-weight: bold; "
-                + "-fx-text-fill: " + COLOR_DIM + "; -fx-letter-spacing: 1;");
+        // ── Fixed header ──────────────────────────────────────────────
+        final Label header = new Label("ENTITY INFO");
+        header.setStyle(FX_FONT
+                + "-fx-font-size:9px; -fx-font-weight:bold;"
+                + "-fx-text-fill:" + C_TEXT_DIM + ";"
+                + "-fx-letter-spacing:2px;");
+        header.setPadding(new Insets(12, 12, 8, 12));
 
-        Separator sep = new Separator();
-        sep.setStyle("-fx-background-color: " + COLOR_BORDER + ";");
-
-        // Titolo entità selezionata (tipo + id)
+        // ── Entity title ──────────────────────────────────────────────
         titleLabel = new Label("—");
-        titleLabel.setStyle(FONT_MONO
-                + "-fx-font-size: 13; -fx-font-weight: bold; "
-                + "-fx-text-fill: " + COLOR_TEXT + ";");
+        titleLabel.setStyle(FX_FONT
+                + "-fx-font-size:13px; -fx-font-weight:bold;"
+                + "-fx-text-fill:" + C_TEXT + ";");
+        titleLabel.setPadding(new Insets(10, 12, 8, 12));
         titleLabel.setWrapText(true);
 
-        // Placeholder quando niente è selezionato
-        noSelectionLabel = new Label("Click an entity\nto see its info.");
-        noSelectionLabel.setStyle(FONT_MONO
-                + "-fx-font-size: 11; -fx-text-fill: " + COLOR_DIM + ";");
-        noSelectionLabel.setAlignment(Pos.CENTER);
-        noSelectionLabel.setWrapText(true);
+        // ── Placeholder ───────────────────────────────────────────────
+        hintLabel = new Label("Click an entity\nto inspect it.");
+        hintLabel.setStyle(FX_FONT
+                + "-fx-font-size:11px; -fx-text-fill:" + C_TEXT_DIM + ";");
+        hintLabel.setAlignment(Pos.CENTER);
+        hintLabel.setPadding(new Insets(24, 12, 0, 12));
 
-        // Contenuto dinamico (righe info)
-        contentBox = new VBox(4);
-        contentBox.setStyle(BG_CARD);
-        contentBox.setPadding(new Insets(10, 10, 10, 10));
+        // ── Scrollable content ────────────────────────────────────────
+        contentBox = new VBox(0);
         contentBox.setVisible(false);
 
-        ScrollPane scroll = new ScrollPane(contentBox);
-        scroll.setStyle("-fx-background: #0f1117; -fx-background-color: #0f1117;");
+        final ScrollPane scroll = new ScrollPane(contentBox);
+        scroll.setStyle(FX_BG_BASE + "-fx-background:" + C_BG_BASE + ";");
         scroll.setFitToWidth(true);
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         VBox.setVgrow(scroll, Priority.ALWAYS);
 
-        root.getChildren().addAll(header, sep, titleLabel, noSelectionLabel, scroll);
+        root.getChildren().addAll(header, hairline(), titleLabel, hintLabel, scroll);
     }
 
+    // =========================================================================
+    // PUBLIC API
+    // =========================================================================
+
     /**
-     * Mostra le info di un'entità nella sidebar.
-     * Può essere chiamato da qualsiasi thread.
+     * Full rebuild — call when a new entity is selected.
      */
     public void showEntity(final AbstractRenderedEntity entity) {
         Platform.runLater(() -> {
-            final Map<String, String> info = entity.getInfo();
-            final String typeName = entity.getEntityTypeName();
-            final String idVal    = info.getOrDefault("ID", "?");
-            final String color    = typeName.equals("Creature") ? COLOR_CREATURE : COLOR_FOOD;
-
-            titleLabel.setText(typeName + " #" + idVal);
-            titleLabel.setStyle(FONT_MONO
-                    + "-fx-font-size: 13; -fx-font-weight: bold; "
-                    + "-fx-text-fill: " + color + ";");
-
             contentBox.getChildren().clear();
 
-            for (Map.Entry<String, String> entry : info.entrySet()) {
-                if (entry.getKey().equals("ID")) continue; // già nel titolo
+            final Map<String, String> info      = entity.getInfo();
+            final String             typeName   = entity.getEntityTypeName();
+            final String             id         = info.getOrDefault("ID", "?");
+            final boolean            isCreature = "Creature".equals(typeName);
 
-                VBox row = buildRow(entry.getKey(), entry.getValue());
-                contentBox.getChildren().add(row);
+            // Title
+            titleLabel.setText(typeName + " #" + id);
+            titleLabel.setStyle(FX_FONT
+                    + "-fx-font-size:13px; -fx-font-weight:bold;"
+                    + "-fx-text-fill:" + (isCreature ? C_ACCENT : C_OK) + ";");
+
+            // ── CORE section ──────────────────────────────────────────
+            // Copy the map and drop ID — it's already in the title.
+            final Map<String, String> coreFields = new LinkedHashMap<>(info);
+            coreFields.remove("ID");
+            // buildSection tags every value-label with its exact map key.
+            contentBox.getChildren().add(buildSection("CORE", coreFields));
+
+            // ── Gene sections (Creature only) ─────────────────────────
+            if (isCreature) {
+                try {
+                    final Creature creature = (Creature) entity.getEntity();
+                    final DNA      dna      = creature.getDna();
+                    contentBox.getChildren().add(buildGeneSection("BEHAVIOUR",    dna.getBehaviourGene().getGenes()));
+                    contentBox.getChildren().add(buildGeneSection("METABOLISM",   dna.getMetabolismGene().getGenes()));
+                    contentBox.getChildren().add(buildGeneSection("MOVEMENT",     dna.getMovementGene().getGenes()));
+                    contentBox.getChildren().add(buildGeneSection("PERCEPTION",   dna.getPerceptionGene().getGenes()));
+                    contentBox.getChildren().add(buildGeneSection("REPRODUCTION", dna.getReproductionGene().getGenes()));
+                } catch (Exception ignored) { }
             }
 
-            noSelectionLabel.setVisible(false);
+            hintLabel.setVisible(false);
             contentBox.setVisible(true);
         });
     }
 
     /**
-     * Aggiorna i valori di un'entità già selezionata senza ricostruire la struttura.
-     * Chiamato ogni tick mentre l'entità è ancora selezionata.
+     * Per-tick refresh — only updates CORE values (the ones from getInfo()).
+     * Gene values don't change tick-to-tick in a meaningful way so we skip them.
+     * Uses userData key lookup — completely index-independent.
      */
     public void updateEntity(final AbstractRenderedEntity entity) {
         Platform.runLater(() -> {
+            if (contentBox.getChildren().isEmpty()) return;
+
             final Map<String, String> info = entity.getInfo();
-            int rowIdx = 0;
 
-            for (Map.Entry<String, String> entry : info.entrySet()) {
-                if (entry.getKey().equals("ID")) continue;
-
-                if (rowIdx < contentBox.getChildren().size()) {
-                    VBox row = (VBox) contentBox.getChildren().get(rowIdx);
-                    // Il valore è la seconda Label dentro il VBox
-                    if (row.getChildren().size() >= 2) {
-                        ((Label) row.getChildren().get(1)).setText(entry.getValue());
+            // Walk every node in the entire contentBox tree looking for
+            // value-Labels whose userData matches a key in info.
+            for (final Node sectionNode : contentBox.getChildren()) {
+                if (!(sectionNode instanceof VBox section)) continue;
+                for (final Node child : section.getChildren()) {
+                    if (!(child instanceof VBox row)) continue;
+                    // row layout: [keyLabel(index 0), valueLabel(index 1), ...]
+                    if (row.getChildren().size() < 2) continue;
+                    final Node second = row.getChildren().get(1);
+                    if (!(second instanceof Label valLabel)) continue;
+                    final Object tag = valLabel.getUserData();
+                    if (tag instanceof String key && info.containsKey(key)) {
+                        valLabel.setText(info.get(key));
                     }
                 }
-                rowIdx++;
             }
         });
     }
 
-    /**
-     * Svuota la sidebar (nessuna entità selezionata).
-     */
+    /** Clear sidebar to empty / no-selection state. */
     public void clear() {
         Platform.runLater(() -> {
             titleLabel.setText("—");
-            titleLabel.setStyle(FONT_MONO
-                    + "-fx-font-size: 13; -fx-font-weight: bold; "
-                    + "-fx-text-fill: " + COLOR_TEXT + ";");
+            titleLabel.setStyle(FX_FONT
+                    + "-fx-font-size:13px; -fx-font-weight:bold;"
+                    + "-fx-text-fill:" + C_TEXT + ";");
             contentBox.getChildren().clear();
             contentBox.setVisible(false);
-            noSelectionLabel.setVisible(true);
+            hintLabel.setVisible(true);
         });
     }
 
+    public VBox getRoot() { return root; }
+
+    // =========================================================================
+    // SECTION BUILDERS
+    // =========================================================================
+
     /**
-     * Restituisce il nodo root da inserire nel layout.
+     * Generic section from a String→String map.
+     * Each value-Label gets userData = the exact map key passed in.
      */
-    public VBox getRoot() {
-        return root;
+    private VBox buildSection(final String title, final Map<String, String> fields) {
+        final VBox section = new VBox(0);
+        section.getChildren().add(sectionHeader(title));
+        section.getChildren().add(hairline());
+        for (Map.Entry<String, String> e : fields.entrySet()) {
+            // tag = exact key from the map (e.g. "Position", "Energy", …)
+            section.getChildren().add(buildRow(e.getKey(), e.getValue(), e.getKey()));
+        }
+        return section;
+    }
+
+    /**
+     * Gene section from a String→Float map.
+     * Value-Labels are tagged with the camelCase gene attribute name so that
+     * future live-updates can find them if needed.
+     */
+    private VBox buildGeneSection(final String title, final Map<String, Float> attrs) {
+        final VBox section = new VBox(0);
+        section.getChildren().add(sectionHeader(title));
+        section.getChildren().add(hairline());
+        for (Map.Entry<String, Float> e : attrs.entrySet()) {
+            final String displayKey = camelToLabel(e.getKey());
+            final String value      = String.format("%.4f", e.getValue());
+            // tag = camelCase original key (unique within the gene's map)
+            section.getChildren().add(buildRow(displayKey, value, e.getKey()));
+        }
+        return section;
     }
 
     // =========================================================================
-    // HELPERS
+    // ROW / LABEL HELPERS
     // =========================================================================
 
-    private VBox buildRow(String key, String value) {
-        Label keyLabel = new Label(key);
-        keyLabel.setStyle(FONT_MONO
-                + "-fx-font-size: 9; -fx-text-fill: " + COLOR_DIM + "; "
-                + "-fx-letter-spacing: 0.5;");
+    /**
+     * @param displayKey  The label text shown on the left.
+     * @param value       The value text shown on the right / below.
+     * @param tagKey      Stored in valueLabel.userData for later lookup.
+     */
+    private VBox buildRow(final String displayKey, final String value, final String tagKey) {
+        final Label keyLabel = new Label(displayKey);
+        keyLabel.setStyle(FX_FONT
+                + "-fx-font-size:9px;"
+                + "-fx-text-fill:" + C_TEXT_DIM + ";");
 
-        Label valueLabel = new Label(value);
-        valueLabel.setStyle(FONT_MONO
-                + "-fx-font-size: 12; -fx-font-weight: bold; "
-                + "-fx-text-fill: " + COLOR_TEXT + ";");
+        final Label valueLabel = new Label(value);
+        valueLabel.setStyle(FX_FONT
+                + "-fx-font-size:12px; -fx-font-weight:bold;"
+                + "-fx-text-fill:" + C_TEXT + ";");
         valueLabel.setWrapText(true);
+        valueLabel.setUserData(tagKey);   // ← the key used by updateEntity()
 
-        VBox row = new VBox(1, keyLabel, valueLabel);
-        row.setPadding(new Insets(0, 0, 6, 0));
-
-        // Separatore sottile sotto ogni riga
-        Separator sep = new Separator();
-        sep.setStyle("-fx-background-color: " + COLOR_BORDER + "; -fx-opacity: 0.5;");
-        row.getChildren().add(sep);
-
+        final VBox row = new VBox(2, keyLabel, valueLabel);
+        row.setPadding(new Insets(5, 12, 5, 12));
+        row.setStyle("-fx-border-color:transparent transparent "
+                + C_BORDER + " transparent; -fx-border-width:0 0 1px 0;");
         return row;
+    }
+
+    private Label sectionHeader(final String title) {
+        final Label l = new Label(title);
+        l.setStyle(FX_FONT
+                + "-fx-font-size:9px; -fx-font-weight:bold;"
+                + "-fx-text-fill:" + C_TEXT_DIM + ";"
+                + "-fx-letter-spacing:1.5px;");
+        l.setPadding(new Insets(10, 12, 4, 12));
+        return l;
+    }
+
+    private Separator hairline() {
+        final Separator s = new Separator();
+        s.setStyle("-fx-background-color:" + C_BORDER + "; -fx-pref-height:1px;");
+        return s;
+    }
+
+    /** "reproductionThreshold" → "Reproduction Threshold" */
+    private static String camelToLabel(final String camel) {
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < camel.length(); i++) {
+            final char c = camel.charAt(i);
+            if (Character.isUpperCase(c) && i > 0) sb.append(' ');
+            sb.append(i == 0 ? Character.toUpperCase(c) : c);
+        }
+        return sb.toString();
     }
 }

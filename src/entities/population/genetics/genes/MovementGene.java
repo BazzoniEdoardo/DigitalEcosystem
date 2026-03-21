@@ -27,4 +27,9 @@ public class MovementGene extends AbstractGene<MovementGene>{
     public MovementGene clone() {
         return new MovementGene(this);
     }
+
+    @Override
+    public void update() {
+
+    }
 }

@@ -29,4 +29,9 @@ public class MetabolismGene extends AbstractGene<MetabolismGene>{
     public MetabolismGene clone() {
         return new MetabolismGene(this);
     }
+
+    @Override
+    public void update() {
+
+    }
 }

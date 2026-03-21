@@ -9,6 +9,7 @@ import render.entities.AbstractRenderedEntity;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -109,9 +110,9 @@ public class Food extends AbstractRenderedEntity implements SimulationEntity, Se
 
     @Override
     public Map<String, String> getInfo() {
-        Map<String, String> info = new HashMap<>();
+        final Map<String, String> info = new LinkedHashMap<>();
         info.put("ID",        String.valueOf(id));
-        info.put("Position",  position.x() + ", " + position.y());
+        info.put("Position",  String.format("%.0f, %.0f", (double) position.x(), (double) position.y()));
         info.put("Nutrition", String.format("%.2f", nutrition));
         info.put("Expired",   String.valueOf(expired));
         return info;
