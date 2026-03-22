@@ -4,8 +4,11 @@ import configuration.RandomConfig;
 import core.App;
 import entities.SimulationEntity;
 import entities.map.World;
+import entities.movement.MoveResult;
 import entities.movement.Position;
 import entities.population.genetics.DNA;
+import entities.population.logic.Brain;
+import entities.population.logic.activity.Action;
 import managers.EntityManager;
 import render.entities.AbstractRenderedEntity;
 import settings.categories.CreatureSettings;
@@ -23,6 +26,7 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
 
     //Le statistiche saranno delegate ad una classe DNA
     protected final DNA dna;
+    protected final Brain brain;
 
     protected final int id;
     protected Position position;
@@ -36,6 +40,7 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
     public Creature(final Position position, final float energy, final float hunger, final World world) {
         this.id = EntityManager.nextId();
         this.dna = new DNA();
+        this.brain = new Brain(this);
         this.world = world;
         setPosition(position);
         setEnergy(energy);
@@ -46,6 +51,7 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
     public Creature(final Position position, final float energy, final float hunger, final DNA dna, final World world) {
         this.id = EntityManager.nextId();
         this.dna = dna.reproduce();
+        this.brain = new Brain(this);
         this.world = world;
         setPosition(position);
         setEnergy(energy);
@@ -84,6 +90,8 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
 
     public World getWorld() { return world; }
 
+    public Brain getBrain() { return brain; }
+
     private void setPosition(final Position position) {
         this.position = (position != null) ? position : new Position(0, 0);
     }
@@ -106,6 +114,7 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
 
     public void eat(final Food food) {
         this.energy = Math.clamp(energy + food.getNutrition() * dna.getMetabolismGene().getGeneAttribute("digestionMultiplier"), 0, dna.getMetabolismGene().getGeneAttribute("maxEnergy"));
+        this.energy = Math.clamp(hunger + food.getNutrition() * dna.getMetabolismGene().getGeneAttribute("digestionMultiplier"), 0, dna.getMetabolismGene().getGeneAttribute("maxHunger"));
         //StatsManager.printFoodAlert(this, food);
     }
 
@@ -127,6 +136,28 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
         return true;
     }
 
+    public boolean moveRandom() {
+        Position newPos = getNextPosition();
+        MoveResult result = world.isMovementAllowed(newPos);
+
+        if (!result.allowed()) return false;
+
+        boolean r = this.move(newPos);
+
+        if (!r) return false;
+
+        if (result.food() != null) {
+            this.eat(result.food());
+            this.world.getFoods().remove(result.food());
+        }
+
+        return true;
+    }
+
+    public void idle() {
+        setMoving(false);
+    }
+
     private boolean canReproduce() {
         return this.energy >= dna.getReproductionGene().getGeneAttribute("reproductionThreshold");
     }
@@ -139,16 +170,13 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
 
         dna.update();
 
-        //Movimento, utilizzo del DNA per gestire, qui dovrei separare la logica e creare delle funzioni generali, tipo updateMovement ecc..., ma per ora va bene cosi
-        energy -= ((moving) ? settings.energyLossPerMovement() : settings.energyLossPerTick()) / dna.getMovementGene().getGeneAttribute("energyEfficiency");
+        //Aggiornamenti necessari
         hunger = Math.clamp(hunger-dna.getMetabolismGene().getGeneAttribute("baseHungerConsumption"), 0, dna.getMetabolismGene().getGeneAttribute("maxHunger"));
 
-        setMoving(false);
+        updateAction();
 
-        //Riproduzione
-        if (canReproduce()) {
-            reproduce();
-        }
+        //Movimento, utilizzo del DNA per gestire, qui dovrei separare la logica e creare delle funzioni generali, tipo updateMovement ecc..., ma per ora va bene cosi
+        energy -= ((moving) ? settings.energyLossPerMovement() : settings.energyLossPerTick()) / dna.getMovementGene().getGeneAttribute("energyEfficiency");
 
         //Morte
         if (energy <= 0) {
@@ -157,8 +185,20 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
 
     }
 
+    protected void updateAction() {
+        final Action action = brain.decide();
+
+        switch (action) {
+            case REPRODUCE -> this.reproduce();
+            case IDLE -> setMoving(false);
+            case MOVE -> moveRandom();
+        }
+    }
+
     protected void reproduce() {
         final CreatureSettings settings = App.getSimManager().getSettings().getCreatureSettings();
+
+        setMoving(false);
 
         //Restart del cooldown per la riproduzione
         dna.getReproductionGene().restartReproductionCooldown();

@@ -180,7 +180,7 @@ public class World implements SimulationEntity, Serializable {
         return this.map[position.x()][position.y()] == '.';
     }
 
-    private MoveResult isMovementAllowed(final Position position) {
+    public MoveResult isMovementAllowed(final Position position) {
         if (position.x() < 0 || position.x() >= width || position.y() < 0 || position.y() >= height) return new MoveResult(false, null);
 
         if (this.map[position.x()][position.y()] == 'C') return new MoveResult(false, null);
@@ -232,29 +232,7 @@ public class World implements SimulationEntity, Serializable {
     private void updateCreatures() {
         final List<Creature> tmp = new ArrayList<>(this.creatures);
 
-        tmp.forEach(creature -> {
-            Position newPos = creature.getNextPosition();
-            MoveResult result = isMovementAllowed(newPos);
-
-            if (!result.allowed()) {
-                boolean wasAlive = creature.isAlive();
-                creature.update();
-                if (wasAlive && !creature.isAlive()) StatsManager.notifyCreatureDied(); // <-- AGGIUNGERE
-                return;
-            }
-
-            creature.move(newPos);
-
-            if (result.food() != null) {
-                creature.eat(result.food());
-                StatsManager.notifyFoodEaten();  // <-- AGGIUNGERE
-                foods.remove(result.food());
-            }
-
-            boolean wasAlive = creature.isAlive();        // <-- AGGIUNGERE
-            creature.update();
-            if (wasAlive && !creature.isAlive()) StatsManager.notifyCreatureDied(); // <-- AGGIUNGERE
-        });
+        tmp.forEach(Creature::update);
     }
 
     private void updateFood() {

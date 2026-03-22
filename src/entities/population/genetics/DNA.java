@@ -48,7 +48,8 @@ public class DNA {
                 reproductionGeneSettings.reproductionRate(),
                 reproductionGeneSettings.childrenMultiplier(),
                 reproductionGeneSettings.mutationRate(),
-                reproductionGeneSettings.mutationDeviation());
+                reproductionGeneSettings.mutationDeviation(),
+                reproductionGeneSettings.reproductionDesire());
     }
 
     protected DNA(final DNA dna, final boolean mutated) {
