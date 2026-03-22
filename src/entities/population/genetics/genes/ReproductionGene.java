@@ -3,6 +3,7 @@ package entities.population.genetics.genes;
 //FATTA
 public class ReproductionGene extends AbstractGene<ReproductionGene> {
 
+    //TODO: Aggiungere il costo della riproduzione
     public ReproductionGene() {
         setGeneAttribute("reproductionThreshold", 0f);      //Quantita di energia minima per riprodursi         //FATTO
         setGeneAttribute("reproductionRate", 0f);           //Ogni quanto puo' riprodursi                       //FATTO

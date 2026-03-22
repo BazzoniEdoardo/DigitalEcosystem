@@ -1,6 +1,6 @@
 package ui;
 
-import configuration.Settings;
+import settings.Settings;
 import core.App;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -11,6 +11,10 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import managers.SimulationManager;
 import managers.StatsManager;
+import settings.categories.CreatureSettings;
+import settings.categories.FoodSettings;
+import settings.categories.SimulationSettings;
+import settings.categories.WorldSettings;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -101,6 +105,9 @@ public class UiManager {
     }
 
     public static ToolBar createToolBar(final SimulationManager simulationManager) {
+        final Settings settings = App.getSimManager().getSettings();
+        final SimulationSettings simulationSettings = settings.getSimulationSettings();
+
         final Button play    = new Button("▶  Play");
         final Button pause   = new Button("⏸  Pause");
         final Button end     = new Button("■  End");
@@ -116,9 +123,9 @@ public class UiManager {
 
         final Slider speed = new Slider(0.1, 10, 1);
         speed.setPrefWidth(120);
-        speed.setValue(App.getSimManager().getSettings().getSpeedMultiplier());
+        speed.setValue(simulationSettings.speedMultiplier());
         speed.valueProperty().addListener((obs, o, n) ->
-                App.getSimManager().getSettings().setSpeedMultiplier(n.floatValue()));
+                settings.setSimulationSettings(simulationSettings.withSpeedMultiplier(n.floatValue())));
 
         final Label speedVal = new Label("1.0×");
         speedVal.setStyle(FX_FONT + "-fx-font-size:11px; -fx-text-fill:" + C_TEXT + "; -fx-min-width:36px;");
@@ -180,14 +187,15 @@ public class UiManager {
 
     private static void openSimulationSettingsWindow(final Stage mainStage) {
         final Settings s = App.getSimManager().getSettings();
+        final SimulationSettings simulationSettings = s.getSimulationSettings();
         final Stage stage = buildWindow("Simulation Settings", 340, 140);
 
         final GridPane grid = settingsGrid();
-        final TextField speedMultiplier = row(grid, 0, "Speed Multiplier", String.valueOf(s.getSpeedMultiplier()));
+        final TextField speedMultiplier = row(grid, 0, "Speed Multiplier", String.valueOf(simulationSettings.speedMultiplier()));
 
         final Button apply = applyButton(() -> {
             try {
-                s.setSpeedMultiplier(Float.parseFloat(speedMultiplier.getText()));
+                s.setSimulationSettings(simulationSettings.withSpeedMultiplier(Float.parseFloat(speedMultiplier.getText())));
             } catch (NumberFormatException ex) {
                 showError("Invalid value for Speed Multiplier.");
             }
@@ -199,22 +207,25 @@ public class UiManager {
 
     private static void openWorldSettingsWindow(final Stage mainStage) {
         final Settings s = App.getSimManager().getSettings();
+        final WorldSettings worldSettings = s.getWorldSettings();
         final Stage stage = buildWindow("World Settings", 340, 290);
 
         final GridPane grid = settingsGrid();
-        final TextField width       = row(grid, 0, "Width",           String.valueOf(s.getWidth()));
-        final TextField height      = row(grid, 1, "Height",          String.valueOf(s.getHeight()));
-        final TextField basePop     = row(grid, 2, "Base Population", String.valueOf(s.getBasePopulation()));
-        final TextField baseFood    = row(grid, 3, "Base Food",       String.valueOf(s.getBaseFood()));
-        final TextField foodPerTick = row(grid, 4, "Food Per Tick",   String.valueOf(s.getFoodPerTick()));
+        final TextField width       = row(grid, 0, "Width",           String.valueOf(worldSettings.width()));
+        final TextField height      = row(grid, 1, "Height",          String.valueOf(worldSettings.height()));
+        final TextField basePop     = row(grid, 2, "Base Population", String.valueOf(worldSettings.basePopulation()));
+        final TextField baseFood    = row(grid, 3, "Base Food",       String.valueOf(worldSettings.baseFood()));
+        final TextField foodPerTick = row(grid, 4, "Food Per Tick",   String.valueOf(worldSettings.foodPerTick()));
 
         final Button apply = applyButton(() -> {
             try {
-                s.setWidth(Integer.parseInt(width.getText()));
-                s.setHeight(Integer.parseInt(height.getText()));
-                s.setBasePopulation(Integer.parseInt(basePop.getText()));
-                s.setBaseFood(Integer.parseInt(baseFood.getText()));
-                s.setFoodPerTick(Float.parseFloat(foodPerTick.getText()));
+                s.setWorldSettings(new WorldSettings(
+                        Integer.parseInt(width.getText()),
+                        Integer.parseInt(height.getText()),
+                        Integer.parseInt(basePop.getText()),
+                        Integer.parseInt(baseFood.getText()),
+                        Float.parseFloat(foodPerTick.getText())
+                ));
             } catch (NumberFormatException ex) {
                 showError("One or more values are invalid.");
             }
@@ -226,26 +237,27 @@ public class UiManager {
 
     private static void openCreatureSettingsWindow(final Stage mainStage) {
         final Settings s = App.getSimManager().getSettings();
+        final CreatureSettings creatureSettings = s.getCreatureSettings();
         final Stage stage = buildWindow("Creature Settings", 340, 390);
 
         final GridPane grid = settingsGrid();
-        final TextField baseEnergy            = row(grid, 0, "Base Energy",            String.valueOf(s.getBaseEnergy()));
-        final TextField baseHunger            = row(grid, 1, "Base Hunger",            String.valueOf(s.getBaseHunger()));
-        final TextField energyLossPerTick     = row(grid, 2, "Energy Loss / Tick",     String.valueOf(s.getEnergyLossPerTick()));
-        final TextField energyLossPerMove     = row(grid, 3, "Energy Loss / Move",     String.valueOf(s.getEnergyLossPerMove()));
-        final TextField reproductionThreshold = row(grid, 4, "Reproduction Threshold", String.valueOf(s.getReproductionThreshold()));
-        final TextField reproductionCost      = row(grid, 5, "Reproduction Cost",      String.valueOf(s.getReproductionCost()));
-        final TextField pregnancyTicks        = row(grid, 6, "Pregnancy Ticks",        String.valueOf(s.getPregnancyTicks()));
+        final TextField baseEnergy            = row(grid, 0, "Base Energy",            String.valueOf(creatureSettings.baseEnergy()));
+        final TextField baseHunger            = row(grid, 1, "Base Hunger",            String.valueOf(creatureSettings.baseHunger()));
+        final TextField energyLossPerTick     = row(grid, 2, "Energy Loss / Tick",     String.valueOf(creatureSettings.energyLossPerTick()));
+        final TextField energyLossPerMove     = row(grid, 3, "Energy Loss / Move",     String.valueOf(creatureSettings.energyLossPerMovement()));
+        final TextField reproductionCost      = row(grid, 5, "Reproduction Cost",      String.valueOf(creatureSettings.reproductionCost()));
+        final TextField pregnancyTicks        = row(grid, 6, "Pregnancy Ticks",        String.valueOf(creatureSettings.pregnancyTicks()));
 
         final Button apply = applyButton(() -> {
             try {
-                s.setBaseEnergy(Float.parseFloat(baseEnergy.getText()));
-                s.setBaseHunger(Float.parseFloat(baseHunger.getText()));
-                s.setEnergyLossPerTick(Float.parseFloat(energyLossPerTick.getText()));
-                s.setEnergyLossPerMove(Float.parseFloat(energyLossPerMove.getText()));
-                s.setReproductionThreshold(Float.parseFloat(reproductionThreshold.getText()));
-                s.setReproductionCost(Float.parseFloat(reproductionCost.getText()));
-                s.setPregnancyTicks(Float.parseFloat(pregnancyTicks.getText()));
+                s.setCreatureSettings(new CreatureSettings(
+                        Float.parseFloat(baseEnergy.getText()),
+                        Float.parseFloat(baseHunger.getText()),
+                        Float.parseFloat(energyLossPerTick.getText()),
+                        Float.parseFloat(energyLossPerMove.getText()),
+                        Float.parseFloat(reproductionCost.getText()),
+                        Float.parseFloat(pregnancyTicks.getText())
+                        ));
             } catch (NumberFormatException ex) {
                 showError("One or more values are invalid.");
             }
@@ -257,16 +269,19 @@ public class UiManager {
 
     private static void openFoodSettingsWindow(final Stage mainStage) {
         final Settings s = App.getSimManager().getSettings();
+        final FoodSettings foodSettings = s.getFoodSettings();
         final Stage stage = buildWindow("Food Settings", 340, 190);
 
         final GridPane grid = settingsGrid();
-        final TextField baseNutrition    = row(grid, 0, "Base Nutrition",   String.valueOf(s.getBaseNutrition()));
-        final TextField decaymentPerTick = row(grid, 1, "Decay Per Tick",   String.valueOf(s.getDecaymentPerTick()));
+        final TextField baseNutrition    = row(grid, 0, "Base Nutrition",   String.valueOf(foodSettings.baseNutrition()));
+        final TextField decaymentPerTick = row(grid, 1, "Decay Per Tick",   String.valueOf(foodSettings.decaymentPerTick()));
 
         final Button apply = applyButton(() -> {
             try {
-                s.setBaseNutrition(Float.parseFloat(baseNutrition.getText()));
-                s.setDecaymentPerTick(Float.parseFloat(decaymentPerTick.getText()));
+                s.setFoodSettings(new FoodSettings(
+                        Float.parseFloat(baseNutrition.getText()),
+                        Float.parseFloat(decaymentPerTick.getText())
+                ));
             } catch (NumberFormatException ex) {
                 showError("One or more values are invalid.");
             }

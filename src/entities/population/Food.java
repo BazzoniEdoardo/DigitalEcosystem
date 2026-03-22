@@ -5,10 +5,10 @@ import entities.SimulationEntity;
 import entities.movement.Position;
 import managers.EntityManager;
 import render.entities.AbstractRenderedEntity;
+import settings.categories.FoodSettings;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -31,7 +31,9 @@ public class Food extends AbstractRenderedEntity implements SimulationEntity, Se
     }
 
     public Food() {
-        this(new Position(0, 0), App.getSimManager().getSettings().getBaseNutrition());
+        final FoodSettings settings = App.getSimManager().getSettings().getFoodSettings();
+
+        this(new Position(0, 0), settings.baseNutrition());
     }
 
     @Override
@@ -56,7 +58,9 @@ public class Food extends AbstractRenderedEntity implements SimulationEntity, Se
     }
 
     private void setNutrition(final float nutrition) {
-        this.nutrition = (nutrition > 0) ? nutrition : App.getSimManager().getSettings().getBaseNutrition();
+        final FoodSettings settings = App.getSimManager().getSettings().getFoodSettings();
+
+        this.nutrition = (nutrition > 0) ? nutrition : settings.baseNutrition();
     }
 
     private void setExpired(final boolean expired) {
@@ -76,7 +80,9 @@ public class Food extends AbstractRenderedEntity implements SimulationEntity, Se
     public void update() {
         if (isExpired()) return;
 
-        this.nutrition -= App.getSimManager().getSettings().getDecaymentPerTick();
+        final FoodSettings settings = App.getSimManager().getSettings().getFoodSettings();
+
+        this.nutrition -= settings.decaymentPerTick();
 
         if (this.nutrition <= 0) {
             setExpired(true);
@@ -84,7 +90,7 @@ public class Food extends AbstractRenderedEntity implements SimulationEntity, Se
     }
 
     @Override
-    public SimulationEntity clone() {
+    public Food clone() {
         return new Food(this);
     }
 

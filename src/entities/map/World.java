@@ -12,6 +12,9 @@ import entities.population.Food;
 import entities.population.PreCreature;
 import entities.population.genetics.DNA;
 import managers.StatsManager;
+import settings.categories.CreatureSettings;
+import settings.categories.FoodSettings;
+import settings.categories.WorldSettings;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -21,6 +24,7 @@ import java.util.Objects;
 import java.util.Queue;
 
 public class World implements SimulationEntity, Serializable {
+
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -56,7 +60,9 @@ public class World implements SimulationEntity, Serializable {
     }
 
     public World() {
-        this(App.getSimManager().getSettings().getWidth(), App.getSimManager().getSettings().getHeight());
+        final WorldSettings settings = App.getSimManager().getSettings().getWorldSettings();
+
+        this(settings.width(), settings.width());
     }
 
     public World(final World world) {
@@ -75,11 +81,13 @@ public class World implements SimulationEntity, Serializable {
     }
 
     private void setWidth(final int width) {
-        this.width = (width > 0) ? width : App.getSimManager().getSettings().getWidth();
+        final WorldSettings settings = App.getSimManager().getSettings().getWorldSettings();
+        this.width = (width > 0) ? width : settings.width();
     }
 
     private void setHeight(final int height) {
-        this.height = (height > 0) ? height : App.getSimManager().getSettings().getHeight();
+        final WorldSettings settings = App.getSimManager().getSettings().getWorldSettings();
+        this.height = (height > 0) ? height : settings.height();
     }
 
     public int getWidth() {
@@ -115,11 +123,13 @@ public class World implements SimulationEntity, Serializable {
     }
 
     private void populateCreatures() {
-        for (int i = 0; i < App.getSimManager().getSettings().getBasePopulation(); i++) {
+        final WorldSettings settings = App.getSimManager().getSettings().getWorldSettings();
+        final CreatureSettings cSettings = App.getSimManager().getSettings().getCreatureSettings();
+        for (int i = 0; i < settings.basePopulation(); i++) {
 
             CreatureBuilder builder = new CreatureBuilder()
-                    .setEnergy(RandomConfig.random.nextFloat(App.getSimManager().getSettings().getBaseEnergy() - 10, App.getSimManager().getSettings().getBaseEnergy() + 11))
-                    .setHunger(RandomConfig.random.nextFloat(App.getSimManager().getSettings().getBaseHunger() - 10, App.getSimManager().getSettings().getBaseHunger() + 11))
+                    .setEnergy(RandomConfig.random.nextFloat(cSettings.baseEnergy() - 10, cSettings.baseEnergy() + 11))
+                    .setHunger(RandomConfig.random.nextFloat(cSettings.baseHunger() - 10, cSettings.baseHunger() + 11))
                     .setPosition(new Position(RandomConfig.random.nextInt(0, width), RandomConfig.random.nextInt(0, height)))
                     .setDna(new DNA());
 
@@ -130,10 +140,13 @@ public class World implements SimulationEntity, Serializable {
     }
 
     private void populateFood() {
-        for (int i = 0; i < App.getSimManager().getSettings().getBaseFood(); i++) {
+        final WorldSettings settings = App.getSimManager().getSettings().getWorldSettings();
+        final FoodSettings fSettings = App.getSimManager().getSettings().getFoodSettings();
+
+        for (int i = 0; i < settings.baseFood(); i++) {
 
             FoodBuilder builder = new FoodBuilder()
-                    .setNutrition(RandomConfig.random.nextFloat(App.getSimManager().getSettings().getBaseNutrition() - 3, App.getSimManager().getSettings().getBaseNutrition() + 4))
+                    .setNutrition(RandomConfig.random.nextFloat(fSettings.baseNutrition() - 3, fSettings.baseNutrition() + 4))
                     .setPosition(new Position(RandomConfig.random.nextInt(0, width), RandomConfig.random.nextInt(0, height)));
 
             while (!addFood(builder.build())) {
@@ -154,14 +167,6 @@ public class World implements SimulationEntity, Serializable {
 
         this.foods.add(food);
         return true;
-    }
-
-    private boolean removeCreature(final Creature creature) {
-        return creatures.remove(creature);
-    }
-
-    private boolean removeFood(final Food food) {
-        return foods.remove(food);
     }
 
     private boolean isPositionFree(final Position position) {
@@ -248,7 +253,10 @@ public class World implements SimulationEntity, Serializable {
     }
 
     private void updateFood() {
-        this.foodPerTick += App.getSimManager().getSettings().getFoodPerTick();
+        final WorldSettings settings = App.getSimManager().getSettings().getWorldSettings();
+        final FoodSettings fSettings = App.getSimManager().getSettings().getFoodSettings();
+
+        this.foodPerTick += settings.foodPerTick();
 
         this.foods.forEach(food -> {
             boolean wasExpired = food.isExpired();
@@ -260,7 +268,7 @@ public class World implements SimulationEntity, Serializable {
         final int foodToSpawn = (int) Math.floor(this.foodPerTick);
         for (int i = 0; i < foodToSpawn; i++) {
             FoodBuilder builder = new FoodBuilder()
-                    .setNutrition(RandomConfig.random.nextFloat(App.getSimManager().getSettings().getBaseNutrition() - 3, App.getSimManager().getSettings().getBaseNutrition() + 4))
+                    .setNutrition(RandomConfig.random.nextFloat(fSettings.baseNutrition() - 3, fSettings.baseNutrition() + 4))
                     .setPosition(new Position(RandomConfig.random.nextInt(0, width), RandomConfig.random.nextInt(0, height)));
 
             while (!addFood(builder.build())) {
@@ -275,6 +283,8 @@ public class World implements SimulationEntity, Serializable {
     }
 
     private void updatePreCreatures() {
+        final CreatureSettings cSettings = App.getSimManager().getSettings().getCreatureSettings();
+
         if (preCreatures.isEmpty()) return;
 
         preCreatures.forEach(PreCreature::update);
@@ -304,8 +314,8 @@ public class World implements SimulationEntity, Serializable {
 
             //NASCITA DELLA CREATURA
             CreatureBuilder builder = new CreatureBuilder()
-                    .setEnergy(RandomConfig.random.nextFloat(App.getSimManager().getSettings().getBaseEnergy() - 10, App.getSimManager().getSettings().getBaseEnergy() + 11))
-                    .setHunger(RandomConfig.random.nextFloat(App.getSimManager().getSettings().getBaseHunger() - 10, App.getSimManager().getSettings().getBaseHunger() + 11))
+                    .setEnergy(RandomConfig.random.nextFloat(cSettings.baseEnergy() - 10, cSettings.baseEnergy() + 11))
+                    .setHunger(RandomConfig.random.nextFloat(cSettings.baseHunger() - 10, cSettings.baseHunger() + 11))
                     .setPosition(firstFreePosition)
                     .setDna(parent.getDna());
 
@@ -356,7 +366,7 @@ public class World implements SimulationEntity, Serializable {
     }
 
     @Override
-    public SimulationEntity clone() {
+    public World clone() {
         return new World(this);
     }
 }

@@ -2,6 +2,7 @@ package entities.population;
 
 import core.App;
 import entities.SimulationEntity;
+import settings.categories.CreatureSettings;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -19,7 +20,9 @@ public class PreCreature implements SimulationEntity, Serializable {
     }
 
     public PreCreature() {
-        this((int) App.getSimManager().getSettings().getPregnancyTicks(), null);
+        final CreatureSettings settings = App.getSimManager().getSettings().getCreatureSettings();
+
+        this((int) settings.pregnancyTicks(), null);
     }
 
     public PreCreature(final PreCreature preCreature) {

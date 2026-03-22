@@ -3,6 +3,7 @@ package managers;
 import core.App;
 import entities.population.Food;
 import entities.population.Creature;
+import settings.Settings;
 import stats.SimulationSnapshot;
 import stats.SimulationStats;
 
@@ -15,7 +16,6 @@ import java.util.List;
 
 /**
  * Manager centralizzato per la raccolta e l'analisi delle statistiche di simulazione.
- *
  * UTILIZZO:
  *  - Chiamare startSimulation() in SimulationManager.init() PRIMA di creare il mondo
  *  - In World.update(), wrappare le 4 funzioni principali con startTimer()/stopTimer():
@@ -173,14 +173,14 @@ public class StatsManager {
         System.out.printf("Foods Min Nutrition: %.2f%n", min);
     }
 
-    public static void printFoodAlert(final Creature creature, final Food food) {
-        System.out.println("FOOD HAS BEEN EATEN");
-        System.out.println("-------------------");
-        System.out.println(creature);
-        System.out.println("-------------------");
-        System.out.println(food);
-        System.out.println("-------------------");
-    }
+//    public static void printFoodAlert(final Creature creature, final Food food) {
+//        System.out.println("FOOD HAS BEEN EATEN");
+//        System.out.println("-------------------");
+//        System.out.println(creature);
+//        System.out.println("-------------------");
+//        System.out.println(food);
+//        System.out.println("-------------------");
+//    }
 
     // =========================================================================
     // REPORT FINALE
@@ -193,7 +193,7 @@ public class StatsManager {
         }
         long totalDurationMs = System.currentTimeMillis() - simulationStartMs;
         SimulationStats stats = new SimulationStats(snapshots, totalDurationMs);
-        printReportToConsole(stats);
+        //printReportToConsole(stats);
         saveReportToJson(stats);
     }
 
@@ -201,101 +201,101 @@ public class StatsManager {
     // STAMPA CONSOLE
     // =========================================================================
 
-    private static void printReportToConsole(SimulationStats s) {
-        String sep = "=".repeat(58);
-        String sub = "-".repeat(58);
-        System.out.println("\n" + sep);
-        System.out.println("           SIMULATION FINAL REPORT");
-        System.out.println(sep);
-
-        System.out.println("\n[ CONFIGURATION ]");
-        System.out.println(sub);
-        System.out.printf("  World Size             : %d x %d%n", App.getSimManager().getSettings().getWidth(), App.getSimManager().getSettings().getHeight());
-        System.out.printf("  Base Population        : %d%n", App.getSimManager().getSettings().getBasePopulation());
-        System.out.printf("  Base Food              : %d%n", App.getSimManager().getSettings().getBaseFood());
-        System.out.printf("  Food Per Tick          : %.2f%n", App.getSimManager().getSettings().getFoodPerTick());
-        System.out.printf("  Tick Duration (ms)     : %.2f%n", App.getSimManager().getSettings().getTickDuration());
-        System.out.printf("  Creature Base Energy   : %.1f%n", App.getSimManager().getSettings().getBaseEnergy());
-        System.out.printf("  Creature Base Hunger   : %.1f%n", App.getSimManager().getSettings().getBaseHunger());
-        System.out.printf("  Energy Loss/Tick       : %.1f%n", App.getSimManager().getSettings().getEnergyLossPerTick());
-        System.out.printf("  Energy Loss/Move       : %.1f%n", App.getSimManager().getSettings().getEnergyLossPerMove());
-        System.out.printf("  Reproduction Threshold : %.1f%n", App.getSimManager().getSettings().getReproductionThreshold());
-        System.out.printf("  Reproduction Cost      : %.1f%n", App.getSimManager().getSettings().getReproductionCost());
-        System.out.printf("  Pregnancy Ticks        : %.2f%n",   App.getSimManager().getSettings().getPregnancyTicks());
-        System.out.printf("  Food Base Nutrition    : %.1f%n", App.getSimManager().getSettings().getBaseNutrition());
-        System.out.printf("  Food Decay/Tick        : %.1f%n", App.getSimManager().getSettings().getDecaymentPerTick());
-
-        System.out.println("\n[ DURATION ]");
-        System.out.println(sub);
-        System.out.printf("  Total Ticks            : %d%n",       s.totalTicks);
-        System.out.printf("  Total Duration         : %s%n",       formatDuration(s.totalDurationMs));
-        System.out.printf("  Avg Tick Duration      : %.2f ms%n",  s.avgTickDurationMs);
-
-        System.out.println("\n[ POPULATION & DEMOGRAPHY ]");
-        System.out.println(sub);
-        System.out.printf("  Peak Population        : %d  (tick %d)%n", s.peakPopulation, s.peakPopulationTick);
-        System.out.printf("  Min Population         : %d  (tick %d)%n", s.minPopulation, s.minPopulationTick);
-        System.out.printf("  Avg Population         : %.2f%n",           s.avgPopulation);
-        System.out.printf("  Total Births           : %d%n",             s.totalBirths);
-        System.out.printf("  Avg Births/Tick        : %.2f%n",           s.avgBirthsPerTick);
-        System.out.printf("  Total Deaths (energy)  : %d%n",             s.totalDeaths);
-        System.out.printf("  Total Deaths (space)   : %d%n",             s.totalPreCreatureDeaths);
-        System.out.printf("  Total Deaths (all)     : %d%n",             s.totalDeathsAll);
-        System.out.printf("  Avg Deaths/Tick        : %.2f%n",           s.avgDeathsPerTick);
-        System.out.printf("  Mortality Rate         : %.1f%%%n",         s.mortalityRate);
-        System.out.printf("  Birth/Death Ratio      : %.3f%n",           s.birthDeathRatio);
-        System.out.printf("  Peak Growth Tick       : %d%n",             s.peakGrowthTick);
-        System.out.printf("  Peak Decline Tick      : %d%n",             s.peakDeclineTick);
-        System.out.printf("  Peak PreCreatures      : %d  (tick %d)%n",  s.peakPreCreatures, s.peakPreCreaturesTick);
-
-        System.out.println("\n[ CREATURE ENERGY ]");
-        System.out.println(sub);
-        System.out.printf("  Average / Median       : %.2f / %.2f%n", s.avgCreatureEnergy, s.medianCreatureEnergy);
-        System.out.printf("  Std Dev                : %.2f%n",          s.stdDevCreatureEnergy);
-        System.out.printf("  Min / Max              : %.1f / %.1f%n",   s.minCreatureEnergy, s.maxCreatureEnergy);
-        System.out.printf("  P25 / P75 / P90        : %.1f / %.1f / %.1f%n", s.p25CreatureEnergy, s.p75CreatureEnergy, s.p90CreatureEnergy);
-
-        System.out.println("\n[ FOOD ]");
-        System.out.println(sub);
-        System.out.printf("  Peak Food on Map       : %d  (tick %d)%n", s.peakFood, s.peakFoodTick);
-        System.out.printf("  Avg Food/Tick          : %.2f%n",           s.avgFoodPerTick);
-        System.out.printf("  Total Spawned          : %d%n",             s.totalFoodSpawned);
-        System.out.printf("  Avg Spawned/Tick       : %.2f%n",           s.avgFoodSpawnedPerTick);
-        System.out.printf("  Total Eaten            : %d%n",             s.totalFoodEaten);
-        System.out.printf("  Total Expired          : %d%n",             s.totalFoodExpired);
-        System.out.printf("  Consumption Rate       : %.1f%%%n",         s.foodConsumptionRate);
-
-        System.out.println("\n[ FOOD NUTRITION ]");
-        System.out.println(sub);
-        System.out.printf("  Average / Median       : %.2f / %.2f%n", s.avgFoodNutrition, s.medianFoodNutrition);
-        System.out.printf("  Std Dev                : %.2f%n",          s.stdDevFoodNutrition);
-        System.out.printf("  Min / Max              : %.1f / %.1f%n",   s.minFoodNutrition, s.maxFoodNutrition);
-        System.out.printf("  P25 / P75              : %.1f / %.1f%n",   s.p25FoodNutrition, s.p75FoodNutrition);
-
-        System.out.println("\n[ PERFORMANCE — TIMING ]");
-        System.out.println(sub);
-        System.out.printf("  %-22s  avg=%6.3f  med=%6.3f  p95=%6.3f  max=%6.3f ms%n",
-                "updateCreatures()", s.avgUpdateCreaturesMs, s.medianUpdateCreaturesMs, s.p95UpdateCreaturesMs, s.maxUpdateCreaturesMs);
-        System.out.printf("  %-22s  avg=%6.3f  med=%6.3f  p95=%6.3f  max=%6.3f ms%n",
-                "updateFood()", s.avgUpdateFoodMs, s.medianUpdateFoodMs, s.p95UpdateFoodMs, s.maxUpdateFoodMs);
-        System.out.printf("  %-22s  avg=%6.3f  med=%6.3f  p95=%6.3f  max=%6.3f ms%n",
-                "updateMap()", s.avgUpdateMapMs, s.medianUpdateMapMs, s.p95UpdateMapMs, s.maxUpdateMapMs);
-        System.out.printf("  %-22s  avg=%6.3f  med=%6.3f  p95=%6.3f  max=%6.3f ms%n",
-                "updatePreCreatures()", s.avgUpdatePreCreaturesMs, s.medianUpdatePreCreaturesMs, s.p95UpdatePreCreaturesMs, s.maxUpdatePreCreaturesMs);
-        System.out.printf("  %-22s  avg=%6.3f  p95=%6.3f  max=%6.3f ms%n",
-                "TOTAL TICK", s.avgTotalTickMs, s.p95TotalTickMs, s.maxTotalTickMs);
-
-        System.out.println("\n[ PERFORMANCE — MEMORY ]");
-        System.out.println(sub);
-        System.out.printf("  Heap Used  avg/peak    : %.1f MB / %.1f MB%n", s.avgHeapUsedMb, s.peakHeapUsedMb);
-        System.out.printf("  Heap Used  min/stddev  : %.1f MB / %.1f MB%n", s.minHeapUsedMb, s.stdDevHeapUsedMb);
-        System.out.printf("  Heap Used  final       : %.1f MB%n",           s.finalHeapUsedMb);
-        System.out.printf("  Creatures mem  peak    : %.3f MB%n",            s.peakCreaturesMemMb);
-        System.out.printf("  Foods mem      peak    : %.3f MB%n",            s.peakFoodsMemMb);
-        System.out.printf("  PreCreatures mem peak  : %.3f MB%n",            s.peakPreCreaturesMemMb);
-
-        System.out.println("\n" + sep + "\n");
-    }
+//    private static void printReportToConsole(SimulationStats s) {
+//        String sep = "=".repeat(58);
+//        String sub = "-".repeat(58);
+//        System.out.println("\n" + sep);
+//        System.out.println("           SIMULATION FINAL REPORT");
+//        System.out.println(sep);
+//
+//        System.out.println("\n[ CONFIGURATION ]");
+//        System.out.println(sub);
+//        System.out.printf("  World Size             : %d x %d%n", App.getSimManager().getSettings().getWidth(), App.getSimManager().getSettings().getHeight());
+//        System.out.printf("  Base Population        : %d%n", App.getSimManager().getSettings().getBasePopulation());
+//        System.out.printf("  Base Food              : %d%n", App.getSimManager().getSettings().getBaseFood());
+//        System.out.printf("  Food Per Tick          : %.2f%n", App.getSimManager().getSettings().getFoodPerTick());
+//        System.out.printf("  Tick Duration (ms)     : %.2f%n", App.getSimManager().getSettings().getTickDuration());
+//        System.out.printf("  Creature Base Energy   : %.1f%n", App.getSimManager().getSettings().getBaseEnergy());
+//        System.out.printf("  Creature Base Hunger   : %.1f%n", App.getSimManager().getSettings().getBaseHunger());
+//        System.out.printf("  Energy Loss/Tick       : %.1f%n", App.getSimManager().getSettings().getEnergyLossPerTick());
+//        System.out.printf("  Energy Loss/Move       : %.1f%n", App.getSimManager().getSettings().getEnergyLossPerMove());
+//        System.out.printf("  Reproduction Threshold : %.1f%n", App.getSimManager().getSettings().getReproductionThreshold());
+//        System.out.printf("  Reproduction Cost      : %.1f%n", App.getSimManager().getSettings().getReproductionCost());
+//        System.out.printf("  Pregnancy Ticks        : %.2f%n",   App.getSimManager().getSettings().getPregnancyTicks());
+//        System.out.printf("  Food Base Nutrition    : %.1f%n", App.getSimManager().getSettings().getBaseNutrition());
+//        System.out.printf("  Food Decay/Tick        : %.1f%n", App.getSimManager().getSettings().getDecaymentPerTick());
+//
+//        System.out.println("\n[ DURATION ]");
+//        System.out.println(sub);
+//        System.out.printf("  Total Ticks            : %d%n",       s.totalTicks);
+//        System.out.printf("  Total Duration         : %s%n",       formatDuration(s.totalDurationMs));
+//        System.out.printf("  Avg Tick Duration      : %.2f ms%n",  s.avgTickDurationMs);
+//
+//        System.out.println("\n[ POPULATION & DEMOGRAPHY ]");
+//        System.out.println(sub);
+//        System.out.printf("  Peak Population        : %d  (tick %d)%n", s.peakPopulation, s.peakPopulationTick);
+//        System.out.printf("  Min Population         : %d  (tick %d)%n", s.minPopulation, s.minPopulationTick);
+//        System.out.printf("  Avg Population         : %.2f%n",           s.avgPopulation);
+//        System.out.printf("  Total Births           : %d%n",             s.totalBirths);
+//        System.out.printf("  Avg Births/Tick        : %.2f%n",           s.avgBirthsPerTick);
+//        System.out.printf("  Total Deaths (energy)  : %d%n",             s.totalDeaths);
+//        System.out.printf("  Total Deaths (space)   : %d%n",             s.totalPreCreatureDeaths);
+//        System.out.printf("  Total Deaths (all)     : %d%n",             s.totalDeathsAll);
+//        System.out.printf("  Avg Deaths/Tick        : %.2f%n",           s.avgDeathsPerTick);
+//        System.out.printf("  Mortality Rate         : %.1f%%%n",         s.mortalityRate);
+//        System.out.printf("  Birth/Death Ratio      : %.3f%n",           s.birthDeathRatio);
+//        System.out.printf("  Peak Growth Tick       : %d%n",             s.peakGrowthTick);
+//        System.out.printf("  Peak Decline Tick      : %d%n",             s.peakDeclineTick);
+//        System.out.printf("  Peak PreCreatures      : %d  (tick %d)%n",  s.peakPreCreatures, s.peakPreCreaturesTick);
+//
+//        System.out.println("\n[ CREATURE ENERGY ]");
+//        System.out.println(sub);
+//        System.out.printf("  Average / Median       : %.2f / %.2f%n", s.avgCreatureEnergy, s.medianCreatureEnergy);
+//        System.out.printf("  Std Dev                : %.2f%n",          s.stdDevCreatureEnergy);
+//        System.out.printf("  Min / Max              : %.1f / %.1f%n",   s.minCreatureEnergy, s.maxCreatureEnergy);
+//        System.out.printf("  P25 / P75 / P90        : %.1f / %.1f / %.1f%n", s.p25CreatureEnergy, s.p75CreatureEnergy, s.p90CreatureEnergy);
+//
+//        System.out.println("\n[ FOOD ]");
+//        System.out.println(sub);
+//        System.out.printf("  Peak Food on Map       : %d  (tick %d)%n", s.peakFood, s.peakFoodTick);
+//        System.out.printf("  Avg Food/Tick          : %.2f%n",           s.avgFoodPerTick);
+//        System.out.printf("  Total Spawned          : %d%n",             s.totalFoodSpawned);
+//        System.out.printf("  Avg Spawned/Tick       : %.2f%n",           s.avgFoodSpawnedPerTick);
+//        System.out.printf("  Total Eaten            : %d%n",             s.totalFoodEaten);
+//        System.out.printf("  Total Expired          : %d%n",             s.totalFoodExpired);
+//        System.out.printf("  Consumption Rate       : %.1f%%%n",         s.foodConsumptionRate);
+//
+//        System.out.println("\n[ FOOD NUTRITION ]");
+//        System.out.println(sub);
+//        System.out.printf("  Average / Median       : %.2f / %.2f%n", s.avgFoodNutrition, s.medianFoodNutrition);
+//        System.out.printf("  Std Dev                : %.2f%n",          s.stdDevFoodNutrition);
+//        System.out.printf("  Min / Max              : %.1f / %.1f%n",   s.minFoodNutrition, s.maxFoodNutrition);
+//        System.out.printf("  P25 / P75              : %.1f / %.1f%n",   s.p25FoodNutrition, s.p75FoodNutrition);
+//
+//        System.out.println("\n[ PERFORMANCE — TIMING ]");
+//        System.out.println(sub);
+//        System.out.printf("  %-22s  avg=%6.3f  med=%6.3f  p95=%6.3f  max=%6.3f ms%n",
+//                "updateCreatures()", s.avgUpdateCreaturesMs, s.medianUpdateCreaturesMs, s.p95UpdateCreaturesMs, s.maxUpdateCreaturesMs);
+//        System.out.printf("  %-22s  avg=%6.3f  med=%6.3f  p95=%6.3f  max=%6.3f ms%n",
+//                "updateFood()", s.avgUpdateFoodMs, s.medianUpdateFoodMs, s.p95UpdateFoodMs, s.maxUpdateFoodMs);
+//        System.out.printf("  %-22s  avg=%6.3f  med=%6.3f  p95=%6.3f  max=%6.3f ms%n",
+//                "updateMap()", s.avgUpdateMapMs, s.medianUpdateMapMs, s.p95UpdateMapMs, s.maxUpdateMapMs);
+//        System.out.printf("  %-22s  avg=%6.3f  med=%6.3f  p95=%6.3f  max=%6.3f ms%n",
+//                "updatePreCreatures()", s.avgUpdatePreCreaturesMs, s.medianUpdatePreCreaturesMs, s.p95UpdatePreCreaturesMs, s.maxUpdatePreCreaturesMs);
+//        System.out.printf("  %-22s  avg=%6.3f  p95=%6.3f  max=%6.3f ms%n",
+//                "TOTAL TICK", s.avgTotalTickMs, s.p95TotalTickMs, s.maxTotalTickMs);
+//
+//        System.out.println("\n[ PERFORMANCE — MEMORY ]");
+//        System.out.println(sub);
+//        System.out.printf("  Heap Used  avg/peak    : %.1f MB / %.1f MB%n", s.avgHeapUsedMb, s.peakHeapUsedMb);
+//        System.out.printf("  Heap Used  min/stddev  : %.1f MB / %.1f MB%n", s.minHeapUsedMb, s.stdDevHeapUsedMb);
+//        System.out.printf("  Heap Used  final       : %.1f MB%n",           s.finalHeapUsedMb);
+//        System.out.printf("  Creatures mem  peak    : %.3f MB%n",            s.peakCreaturesMemMb);
+//        System.out.printf("  Foods mem      peak    : %.3f MB%n",            s.peakFoodsMemMb);
+//        System.out.printf("  PreCreatures mem peak  : %.3f MB%n",            s.peakPreCreaturesMemMb);
+//
+//        System.out.println("\n" + sep + "\n");
+//    }
 
     // =========================================================================
     // EXPORT JSON
@@ -313,26 +313,28 @@ public class StatsManager {
     }
 
     private static String buildJson(SimulationStats s) {
+
+        final Settings settings = App.getSimManager().getSettings();
+
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
 
         // Config
         sb.append("  \"config\": {\n");
-        sb.append(jf("world_width",                      App.getSimManager().getSettings().getWidth()));
-        sb.append(jf("world_height",                     App.getSimManager().getSettings().getHeight()));
-        sb.append(jf("base_population",                  App.getSimManager().getSettings().getBasePopulation()));
-        sb.append(jf("base_food",                        App.getSimManager().getSettings().getBaseFood()));
-        sb.append(jf("food_per_tick",                    App.getSimManager().getSettings().getFoodPerTick()));
-        sb.append(jf("tick_duration_ms",                 App.getSimManager().getSettings().getTickDuration()));
-        sb.append(jf("creature_base_energy",             App.getSimManager().getSettings().getBaseEnergy()));
-        sb.append(jf("creature_base_hunger",             App.getSimManager().getSettings().getBaseHunger()));
-        sb.append(jf("creature_energy_loss_per_tick",    App.getSimManager().getSettings().getEnergyLossPerTick()));
-        sb.append(jf("creature_energy_loss_per_move",    App.getSimManager().getSettings().getEnergyLossPerMove()));
-        sb.append(jf("creature_reproduction_threshold",  App.getSimManager().getSettings().getReproductionThreshold()));
-        sb.append(jf("creature_reproduction_cost",       App.getSimManager().getSettings().getReproductionCost()));
-        sb.append(jf("creature_pregnancy_ticks",         App.getSimManager().getSettings().getPregnancyTicks()));
-        sb.append(jf("food_base_nutrition",              App.getSimManager().getSettings().getBaseNutrition()));
-        sb.append(jfl("food_decay_per_tick",             App.getSimManager().getSettings().getDecaymentPerTick()));
+        sb.append(jf("world_width",                      settings.getWorldSettings().width()));
+        sb.append(jf("world_height",                     settings.getWorldSettings().height()));
+        sb.append(jf("base_population",                  settings.getWorldSettings().basePopulation()));
+        sb.append(jf("base_food",                        settings.getWorldSettings().baseFood()));
+        sb.append(jf("food_per_tick",                    settings.getWorldSettings().foodPerTick()));
+        sb.append(jf("tick_duration_ms",                 settings.getSimulationSettings().tickDuration()));
+        sb.append(jf("creature_base_energy",             settings.getCreatureSettings().baseEnergy()));
+        sb.append(jf("creature_base_hunger",             settings.getCreatureSettings().baseHunger()));
+        sb.append(jf("creature_energy_loss_per_tick",    settings.getCreatureSettings().energyLossPerTick()));
+        sb.append(jf("creature_energy_loss_per_move",    settings.getCreatureSettings().energyLossPerMovement()));
+        sb.append(jf("creature_reproduction_cost",       settings.getCreatureSettings().reproductionCost()));
+        sb.append(jf("creature_pregnancy_ticks",         settings.getCreatureSettings().pregnancyTicks()));
+        sb.append(jf("food_base_nutrition",              settings.getFoodSettings().baseNutrition()));
+        sb.append(jfl("food_decay_per_tick",             settings.getFoodSettings().decaymentPerTick()));
         sb.append("  },\n");
 
         // Durata

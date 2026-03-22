@@ -1,9 +1,9 @@
 package entities.population.genetics;
 
 import configuration.RandomConfig;
-import configuration.Settings;
 import core.App;
 import entities.population.genetics.genes.*;
+import settings.categories.genes.*;
 
 public class DNA {
 
@@ -14,13 +14,41 @@ public class DNA {
     protected ReproductionGene reproductionGene;
 
     public DNA() {
-        final Settings baseSettings = App.getSimManager().getSettings();
+        final BehaviourGeneSettings behaviourGeneSettings = App.getSimManager().getSettings().getGeneSettings().behaviourGeneSettings();
+        final MetabolismGeneSettings metabolismGeneSettings = App.getSimManager().getSettings().getGeneSettings().metabolismGeneSettings();
+        final MovementGeneSettings movementGeneSettings = App.getSimManager().getSettings().getGeneSettings().movementGeneSettings();
+        final PerceptionGeneSettings perceptionGeneSettings = App.getSimManager().getSettings().getGeneSettings().perceptionGeneSettings();
+        final ReproductionGeneSettings reproductionGeneSettings = App.getSimManager().getSettings().getGeneSettings().reproductionGeneSettings();
 
-        this.behaviourGene = new BehaviourGene(baseSettings.getAggressiveness(), baseSettings.getFear(), baseSettings.getCuriosity(), baseSettings.getRandomness(), baseSettings.getPersistence());
-        this.metabolismGene = new MetabolismGene(baseSettings.getBaseHungerConsumption(), baseSettings.getDigestionMultiplier(), baseSettings.getMaxEnergy(), baseSettings.getMaxHunger());
-        this.movementGene = new MovementGene(baseSettings.getBaseSpeed(), baseSettings.getBaseAgility(), baseSettings.getEnergyEfficency());
-        this.perceptionGene = new PerceptionGene(baseSettings.getVisionRange(), baseSettings.getVisionAngle(), baseSettings.getFoodPriority());
-        this.reproductionGene = new ReproductionGene(baseSettings.getReproductionThreshold(), baseSettings.getReproductionRate(), baseSettings.getChildrenMultiplier(), baseSettings.getMutationRate(), baseSettings.getMutationDeviation());
+        this.behaviourGene = new BehaviourGene(
+                behaviourGeneSettings.aggressiveness(),
+                behaviourGeneSettings.fear(),
+                behaviourGeneSettings.curiosity(),
+                behaviourGeneSettings.randomness(),
+                behaviourGeneSettings.persistence());
+
+        this.metabolismGene = new MetabolismGene(
+                metabolismGeneSettings.baseHungerConsumption(),
+                metabolismGeneSettings.digestionMultiplier(),
+                metabolismGeneSettings.maxEnergy(),
+                metabolismGeneSettings.maxHunger());
+
+        this.movementGene = new MovementGene(
+                movementGeneSettings.baseSpeed(),
+                movementGeneSettings.baseAgility(),
+                movementGeneSettings.energyEfficiency());
+
+        this.perceptionGene = new PerceptionGene(
+                perceptionGeneSettings.visionRange(),
+                perceptionGeneSettings.visionAngle(),
+                perceptionGeneSettings.foodPriority());
+
+        this.reproductionGene = new ReproductionGene(
+                reproductionGeneSettings.reproductionThreshold(),
+                reproductionGeneSettings.reproductionRate(),
+                reproductionGeneSettings.childrenMultiplier(),
+                reproductionGeneSettings.mutationRate(),
+                reproductionGeneSettings.mutationDeviation());
     }
 
     protected DNA(final DNA dna, final boolean mutated) {
@@ -32,8 +60,6 @@ public class DNA {
             this.movementGene = dna.movementGene.mutate(deviation);
             this.perceptionGene = dna.perceptionGene.mutate(deviation);
             this.reproductionGene = dna.reproductionGene.mutate(deviation);
-
-            System.out.println("A DNA has mutated!");
         }else {
             this.behaviourGene = dna.getBehaviourGene().clone();
             this.metabolismGene = dna.getMetabolismGene().clone();

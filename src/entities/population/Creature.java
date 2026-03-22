@@ -8,6 +8,7 @@ import entities.movement.Position;
 import entities.population.genetics.DNA;
 import managers.EntityManager;
 import render.entities.AbstractRenderedEntity;
+import settings.categories.CreatureSettings;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -49,7 +50,9 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
     }
 
     public Creature() {
-        this(null, App.getSimManager().getSettings().getBaseEnergy(), App.getSimManager().getSettings().getBaseHunger());
+        final CreatureSettings settings = App.getSimManager().getSettings().getCreatureSettings();
+
+        this(null, settings.baseEnergy(), settings.baseHunger());
     }
 
     public Creature(final Creature creature) {
@@ -86,11 +89,15 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
     }
 
     private void setEnergy(final float energy) {
-        this.energy = (this.energy >= 0) ? energy : App.getSimManager().getSettings().getBaseEnergy();
+        final CreatureSettings settings = App.getSimManager().getSettings().getCreatureSettings();
+
+        this.energy = (this.energy >= 0) ? energy : settings.baseEnergy();
     }
 
     private void setHunger(final float hunger) {
-        this.hunger = (this.hunger >= 0) ? hunger : App.getSimManager().getSettings().getBaseHunger();
+        final CreatureSettings settings = App.getSimManager().getSettings().getCreatureSettings();
+
+        this.hunger = (this.hunger >= 0) ? hunger : settings.baseHunger();
     }
 
     private void setAlive(final boolean alive) { this.alive = alive; }
@@ -98,11 +105,11 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
     private void setMoving(final boolean moving) { this.moving = moving; }
 
     public void eat(final Food food) {
-        this.energy = Math.clamp(energy + food.getNutrition() * dna.getMetabolismGene().getGeneAttribute("digestionMultiplier"), 0, dna.getMetabolismGene().getGeneAttribute("maxEnergy"));;
+        this.energy = Math.clamp(energy + food.getNutrition() * dna.getMetabolismGene().getGeneAttribute("digestionMultiplier"), 0, dna.getMetabolismGene().getGeneAttribute("maxEnergy"));
         //StatsManager.printFoodAlert(this, food);
     }
 
-    public SimulationEntity clone() {
+    public Creature clone() {
         return new Creature(this);
     }
 
@@ -128,10 +135,12 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
     public void update() {
         if (!isAlive()) return;
 
+        final CreatureSettings settings = App.getSimManager().getSettings().getCreatureSettings();
+
         dna.update();
 
         //Movimento, utilizzo del DNA per gestire, qui dovrei separare la logica e creare delle funzioni generali, tipo updateMovement ecc..., ma per ora va bene cosi
-        energy -= ((moving) ? App.getSimManager().getSettings().getEnergyLossPerMove() : App.getSimManager().getSettings().getEnergyLossPerTick()) / dna.getMovementGene().getGeneAttribute("energyEfficiency");
+        energy -= ((moving) ? settings.energyLossPerMovement() : settings.energyLossPerTick()) / dna.getMovementGene().getGeneAttribute("energyEfficiency");
         hunger = Math.clamp(hunger-dna.getMetabolismGene().getGeneAttribute("baseHungerConsumption"), 0, dna.getMetabolismGene().getGeneAttribute("maxHunger"));
 
         setMoving(false);
@@ -149,6 +158,8 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
     }
 
     protected void reproduce() {
+        final CreatureSettings settings = App.getSimManager().getSettings().getCreatureSettings();
+
         //Restart del cooldown per la riproduzione
         dna.getReproductionGene().restartReproductionCooldown();
 
@@ -156,8 +167,8 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
         final int childrenNumber = (int) (RandomConfig.random.nextFloat(1, 2) * dna.getReproductionGene().getGeneAttribute("childrenMultiplier"));
 
         for (int i = 0; i < childrenNumber; i++) {
-            World.preCreatures.add(new PreCreature((int) App.getSimManager().getSettings().getPregnancyTicks(), this));
-            setEnergy(this.energy-App.getSimManager().getSettings().getReproductionCost());
+            World.preCreatures.add(new PreCreature((int) settings.pregnancyTicks(), this));
+            setEnergy(this.energy-settings.reproductionCost());
         }
 
 

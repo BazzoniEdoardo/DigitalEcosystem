@@ -1,7 +1,6 @@
 package managers;
 
-import configuration.Settings;
-import core.App;
+import settings.Settings;
 import entities.map.World;
 
 import java.io.*;
@@ -19,7 +18,7 @@ public class SimulationManager implements Runnable, Serializable {
 
     private World world;
 
-    private Settings settings;
+    private final Settings settings;
 
     private transient Thread simulationThread;
 
@@ -42,7 +41,7 @@ public class SimulationManager implements Runnable, Serializable {
             tickCount++;
 
             try {
-                Thread.sleep((long) (App.getSimManager().getSettings().getTickDuration() / App.getSimManager().getSettings().getSpeedMultiplier()));
+                Thread.sleep((long) (settings.getSimulationSettings().tickDuration() / settings.getSimulationSettings().speedMultiplier()));
             }catch (InterruptedException e) {
                 break;
             }
@@ -89,7 +88,7 @@ public class SimulationManager implements Runnable, Serializable {
         return running;
     }
 
-    public int isTickCount() {
+    public int getTickCount() {
         return tickCount;
     }
 
