@@ -1,16 +1,17 @@
 package managers;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class EntityManager {
 
-    private static int id = 0;
+    private static final AtomicInteger id = new AtomicInteger(0);
 
     public static int getCurrentId() {
-        return id;
+        return id.get();
     }
 
     public static int nextId() {
-        id++;
-        return id;
+        return id.incrementAndGet();
     }
 
 }

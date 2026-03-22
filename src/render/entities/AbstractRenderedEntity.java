@@ -6,12 +6,12 @@ import java.util.Map;
 
 public abstract class AbstractRenderedEntity implements RenderedEntity{
 
-    protected double x;
-    protected double y;
-    protected double width;
-    protected double height;
+    protected transient double x;
+    protected transient double y;
+    protected transient double width;
+    protected transient double height;
 
-    protected Shape shape;
+    protected transient Shape shape;
 
     public AbstractRenderedEntity(final double x, final double y, final double width, final double height, final Shape shape) {
         setX(x);

@@ -18,10 +18,7 @@ import settings.categories.WorldSettings;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Objects;
-import java.util.Queue;
+import java.util.*;
 
 public class World implements SimulationEntity, Serializable {
 
@@ -31,8 +28,8 @@ public class World implements SimulationEntity, Serializable {
     protected int width;
     protected int height;
 
-    protected final ArrayList<Creature> creatures;
-    protected final ArrayList<Food> foods;
+    protected final List<Creature> creatures;
+    protected final List<Food> foods;
 
     private int tickIndex = 0;
     private long lastTimeUpdateCreaturesNs   = 0L;
@@ -44,14 +41,14 @@ public class World implements SimulationEntity, Serializable {
 
     protected float foodPerTick;
 
-    public static final Queue<PreCreature> preCreatures = new LinkedList<>();
+    private final Queue<PreCreature> preCreatures = new LinkedList<>();
 
     public World(final int width, final int height) {
         setWidth(width);
         setHeight(height);
 
-        this.creatures = new ArrayList<>();
-        this.foods = new ArrayList<>();
+        this.creatures = Collections.synchronizedList(new ArrayList<>());
+        this.foods = Collections.synchronizedList(new ArrayList<>());
 
         this.map = new char[this.width][this.height];
 
@@ -62,7 +59,7 @@ public class World implements SimulationEntity, Serializable {
     public World() {
         final WorldSettings settings = App.getSimManager().getSettings().getWorldSettings();
 
-        this(settings.width(), settings.width());
+        this(settings.width(), settings.height());
     }
 
     public World(final World world) {
@@ -98,11 +95,11 @@ public class World implements SimulationEntity, Serializable {
         return height;
     }
 
-    public ArrayList<Creature> getCreatures() {
+    public synchronized List<Creature> getCreatures() {
         return creatures;
     }
 
-    public synchronized ArrayList<Food> getFoods() {
+    public synchronized List<Food> getFoods() {
         return foods;
     }
 
@@ -131,7 +128,8 @@ public class World implements SimulationEntity, Serializable {
                     .setEnergy(RandomConfig.random.nextFloat(cSettings.baseEnergy() - 10, cSettings.baseEnergy() + 11))
                     .setHunger(RandomConfig.random.nextFloat(cSettings.baseHunger() - 10, cSettings.baseHunger() + 11))
                     .setPosition(new Position(RandomConfig.random.nextInt(0, width), RandomConfig.random.nextInt(0, height)))
-                    .setDna(new DNA());
+                    .setDna(new DNA())
+                    .setWorld(this);
 
             while (!addCreature(builder.build())) {
                 builder.setPosition(new Position(RandomConfig.random.nextInt(0, width), RandomConfig.random.nextInt(0, height)));
@@ -162,6 +160,13 @@ public class World implements SimulationEntity, Serializable {
         return true;
     }
 
+    public boolean addPreCreature(final PreCreature preCreature) {
+        if (preCreature == null) return false;
+
+        this.preCreatures.add(preCreature);
+        return true;
+    }
+
     private boolean addFood(final Food food) {
         if (!isPositionFree(food.getPosition())) return false;
 
@@ -178,17 +183,15 @@ public class World implements SimulationEntity, Serializable {
     private MoveResult isMovementAllowed(final Position position) {
         if (position.x() < 0 || position.x() >= width || position.y() < 0 || position.y() >= height) return new MoveResult(false, null);
 
-        if (this.map[position.x()][position.y()] == '.') return new MoveResult(true, null);
         if (this.map[position.x()][position.y()] == 'C') return new MoveResult(false, null);
+        if (this.map[position.x()][position.y()] == '.') return new MoveResult(true, null);
 
-        Food food = new Food();
-        for (Food f : foods) {
-            if (Objects.equals(f.getPosition(), position)) {
-                food = f;
-            }
-        }
+        return this.foods.stream()
+                .filter(f -> f.getPosition().equals(position))
+                .findFirst()
+                .map(f -> new MoveResult(true, f))
+                .orElse(new MoveResult(true, null));
 
-        return new MoveResult(true, food);
     }
 
     private void updateMap() {
@@ -227,7 +230,9 @@ public class World implements SimulationEntity, Serializable {
     }
 
     private void updateCreatures() {
-        this.creatures.forEach(creature -> {
+        final List<Creature> tmp = new ArrayList<>(this.creatures);
+
+        tmp.forEach(creature -> {
             Position newPos = creature.getNextPosition();
             MoveResult result = isMovementAllowed(newPos);
 
@@ -258,7 +263,9 @@ public class World implements SimulationEntity, Serializable {
 
         this.foodPerTick += settings.foodPerTick();
 
-        this.foods.forEach(food -> {
+
+        final List<Food> tmp = new ArrayList<>(this.foods);
+        tmp.forEach(food -> {
             boolean wasExpired = food.isExpired();
             food.update();
             if (!wasExpired && food.isExpired()) StatsManager.notifyFoodExpired(); // <-- AGGIUNGERE
@@ -289,7 +296,9 @@ public class World implements SimulationEntity, Serializable {
 
         preCreatures.forEach(PreCreature::update);
 
-        if (preCreatures.peek().getDaysTillBorn() <= 0) {
+
+        PreCreature next;
+        while ((next = preCreatures.peek()) != null && next.getDaysTillBorn() <= 0) {
             final PreCreature child = preCreatures.poll();
             final Creature parent = child.getParent();
             final Position parentPos = parent.getPosition();
@@ -309,7 +318,7 @@ public class World implements SimulationEntity, Serializable {
             //NESSUNO SPAZIO DISPONIBILE, MUORE
             if (firstFreePosition == null) {
                 StatsManager.notifyPreCreatureDied(); // <-- AGGIUNGERE
-                return;
+                continue;
             }
 
             //NASCITA DELLA CREATURA
@@ -317,11 +326,13 @@ public class World implements SimulationEntity, Serializable {
                     .setEnergy(RandomConfig.random.nextFloat(cSettings.baseEnergy() - 10, cSettings.baseEnergy() + 11))
                     .setHunger(RandomConfig.random.nextFloat(cSettings.baseHunger() - 10, cSettings.baseHunger() + 11))
                     .setPosition(firstFreePosition)
-                    .setDna(parent.getDna());
+                    .setDna(parent.getDna())
+                    .setWorld(this);
 
             addCreature(builder.build());
             StatsManager.notifyCreatureBorn(); // <-- AGGIUNGERE
         }
+
     }
 
     @Override

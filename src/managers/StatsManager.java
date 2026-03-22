@@ -113,8 +113,8 @@ public class StatsManager {
      */
     public static void recordTick(
             int tick,
-            ArrayList<Creature> creatures,
-            ArrayList<Food> foods,
+            List<Creature> creatures,
+            List<Food> foods,
             int preCreatureCount,
             long timeUpdateCreaturesNs,
             long timeUpdateFoodNs,
@@ -145,7 +145,7 @@ public class StatsManager {
     // STAMPA IN TEMPO REALE
     // =========================================================================
 
-    public static void printAveragePopulationEnergy(final ArrayList<Creature> creatures) {
+    public static void printAveragePopulationEnergy(final List<Creature> creatures) {
         if (creatures.isEmpty()) return;
         double av = 0; float min = Float.MAX_VALUE, max = Float.MIN_VALUE;
         for (Creature c : creatures) {
@@ -159,7 +159,7 @@ public class StatsManager {
         System.out.printf("Creatures Min Energy: %.2f%n", min);
     }
 
-    public static void printAverageFoodNutrition(final ArrayList<Food> foods) {
+    public static void printAverageFoodNutrition(final List<Food> foods) {
         if (foods.isEmpty()) return;
         double av = 0; float min = Float.MAX_VALUE, max = Float.MIN_VALUE;
         for (Food f : foods) {

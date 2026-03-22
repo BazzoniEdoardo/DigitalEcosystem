@@ -10,11 +10,11 @@ public class Settings implements Serializable {
     private static final long serialVersionUID = 1L;
 
     //Settings Generali
-    private SimulationSettings simulationSettings;
-    private WorldSettings worldSettings;
-    private CreatureSettings creatureSettings;
-    private FoodSettings foodSettings;
-    private GeneSettings geneSettings;
+    private volatile SimulationSettings simulationSettings;
+    private volatile WorldSettings worldSettings;
+    private volatile CreatureSettings creatureSettings;
+    private volatile FoodSettings foodSettings;
+    private volatile GeneSettings geneSettings;
 
     public Settings() {
 
@@ -27,45 +27,45 @@ public class Settings implements Serializable {
     }
 
     //Getters
-    public SimulationSettings getSimulationSettings() {
+    public synchronized SimulationSettings getSimulationSettings() {
         return simulationSettings;
     }
 
-    public WorldSettings getWorldSettings() {
+    public synchronized WorldSettings getWorldSettings() {
         return worldSettings;
     }
 
-    public CreatureSettings getCreatureSettings() {
+    public synchronized CreatureSettings getCreatureSettings() {
         return creatureSettings;
     }
 
-    public FoodSettings getFoodSettings() {
+    public synchronized FoodSettings getFoodSettings() {
         return foodSettings;
     }
 
-    public GeneSettings getGeneSettings() {
+    public synchronized GeneSettings getGeneSettings() {
         return geneSettings;
     }
 
     //Setters
 
-    public void setGeneSettings(GeneSettings geneSettings) {
+    public synchronized void setGeneSettings(GeneSettings geneSettings) {
         this.geneSettings = geneSettings;
     }
 
-    public void setFoodSettings(FoodSettings foodSettings) {
+    public synchronized void setFoodSettings(FoodSettings foodSettings) {
         this.foodSettings = foodSettings;
     }
 
-    public void setCreatureSettings(CreatureSettings creatureSettings) {
+    public synchronized void setCreatureSettings(CreatureSettings creatureSettings) {
         this.creatureSettings = creatureSettings;
     }
 
-    public void setWorldSettings(WorldSettings worldSettings) {
+    public synchronized void setWorldSettings(WorldSettings worldSettings) {
         this.worldSettings = worldSettings;
     }
 
-    public void setSimulationSettings(SimulationSettings simulationSettings) {
+    public synchronized void setSimulationSettings(SimulationSettings simulationSettings) {
         this.simulationSettings = simulationSettings;
     }
 }

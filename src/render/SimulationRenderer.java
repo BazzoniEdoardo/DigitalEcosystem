@@ -11,8 +11,10 @@ import render.entities.AbstractRenderedEntity;
 import ui.SidePanel;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+//Fixare gli errori di sincronizzazione tra threads
 public final class SimulationRenderer {
 
     private final Canvas canvas;
@@ -30,7 +32,7 @@ public final class SimulationRenderer {
     private double mouseX = -1;
     private double mouseY = -1;
 
-    // Entità renderizzate nel tick corrente (per hit-test)
+    // Entità renderizzate nel tick corrente (per hit-test), provare con arraylist normale
     private final List<AbstractRenderedEntity> renderedEntities = new ArrayList<>();
 
     // Entità attualmente selezionata (click)
@@ -60,7 +62,7 @@ public final class SimulationRenderer {
     // RENDER
     // =========================================================================
 
-    public void render(final World world) {
+    public synchronized void render(final World world) {
         if (world == null) return;
 
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
@@ -74,10 +76,13 @@ public final class SimulationRenderer {
         final double baseOffsetX   = (canvas.getWidth()  - gridPixelW)  / 2 + offsetX;
         final double baseOffsetY   = (canvas.getHeight() - gridPixelH) / 2 + offsetY;
 
+        final List<Creature> creatures = new ArrayList<>(world.getCreatures());
+        final List<Food> foods = new ArrayList<>(world.getFoods());
+
         renderedEntities.clear();
 
         // ── Food ──
-        for (Food food : world.getFoods()) {
+        for (Food food : foods) {
             double drawX = baseOffsetX + food.getPosition().x() * cellSize;
             double drawY = baseOffsetY + food.getPosition().y() * cellSize;
 
@@ -106,7 +111,7 @@ public final class SimulationRenderer {
         // ── Creatures ──
         AbstractRenderedEntity hoveredEntity = null;
 
-        for (Creature creature : world.getCreatures()) {
+        for (Creature creature : creatures) {
             double drawX = baseOffsetX + creature.getPosition().x() * cellSize;
             double drawY = baseOffsetY + creature.getPosition().y() * cellSize;
 

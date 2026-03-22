@@ -4,6 +4,7 @@ import settings.Settings;
 import entities.map.World;
 
 import java.io.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SimulationManager implements Runnable, Serializable {
     @Serial
@@ -12,7 +13,7 @@ public class SimulationManager implements Runnable, Serializable {
     //Sim attributes
     //TODO: fare in modo che i parametri si possano passare come argomento al programma, cosi' da automatizzare con uno script python
     private boolean initialized = false;
-    private volatile boolean running = false;
+    private final AtomicBoolean running = new AtomicBoolean(false);
     private boolean ended = false;
     private int tickCount = 0;
 
@@ -32,9 +33,11 @@ public class SimulationManager implements Runnable, Serializable {
     public void run() {
         init();
 
-        while (running) {
-
-            running = !world.hasSimulationEnded();
+        while (running.get()) {
+            if (world.hasSimulationEnded()) {
+                running.set(false);
+                break;
+            }
 
             update();
 
@@ -55,7 +58,7 @@ public class SimulationManager implements Runnable, Serializable {
         if (initialized) return;
 
         initialized = true;
-        running = true;
+        running.set(true);
 
         StatsManager.startSimulation();
 
@@ -85,7 +88,7 @@ public class SimulationManager implements Runnable, Serializable {
     }
 
     public boolean isRunning() {
-        return running;
+        return running.get();
     }
 
     public int getTickCount() {
@@ -102,21 +105,21 @@ public class SimulationManager implements Runnable, Serializable {
         if (ended) return;
 
         if (simulationThread == null || !simulationThread.isAlive()) {
-            running = true;
+            running.set(true);
             simulationThread = new Thread(this);
             simulationThread.setDaemon(true);
             simulationThread.start();
         }else {
-            running = true;
+            running.set(true);
         }
     }
 
     public void pauseSimulation() {
-        running = false;
+        running.set(false);
     }
 
     public void stopSimulation() {
-        running = false;
+        running.set(false);
         ended = true;
 
         if (simulationThread != null && simulationThread.isAlive()) {
@@ -161,6 +164,7 @@ public class SimulationManager implements Runnable, Serializable {
         this.tickCount = manager.tickCount;
         this.initialized = manager.initialized;
         this.ended = false;
+        this.running.set(false);
     }
 
     public Settings getSettings() {

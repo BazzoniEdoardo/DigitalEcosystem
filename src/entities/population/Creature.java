@@ -31,32 +31,30 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
     protected boolean alive;
     protected boolean moving;
 
-    public Creature(final Position position, final float energy, final float hunger) {
+    protected final World world;
+
+    public Creature(final Position position, final float energy, final float hunger, final World world) {
         this.id = EntityManager.nextId();
         this.dna = new DNA();
+        this.world = world;
         setPosition(position);
         setEnergy(energy);
         setHunger(hunger);
         setAlive(true);
     }
 
-    public Creature(final Position position, final float energy, final float hunger, final DNA dna) {
+    public Creature(final Position position, final float energy, final float hunger, final DNA dna, final World world) {
         this.id = EntityManager.nextId();
         this.dna = dna.reproduce();
+        this.world = world;
         setPosition(position);
         setEnergy(energy);
         setHunger(hunger);
         setAlive(true);
-    }
-
-    public Creature() {
-        final CreatureSettings settings = App.getSimManager().getSettings().getCreatureSettings();
-
-        this(null, settings.baseEnergy(), settings.baseHunger());
     }
 
     public Creature(final Creature creature) {
-        this(creature.getPosition(), creature.getEnergy(), creature.getHunger(), creature.getDna());
+        this(creature.getPosition(), creature.getEnergy(), creature.getHunger(), creature.getDna(), creature.getWorld());
     }
 
     @Override
@@ -84,6 +82,8 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
         return dna;
     }
 
+    public World getWorld() { return world; }
+
     private void setPosition(final Position position) {
         this.position = (position != null) ? position : new Position(0, 0);
     }
@@ -91,13 +91,13 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
     private void setEnergy(final float energy) {
         final CreatureSettings settings = App.getSimManager().getSettings().getCreatureSettings();
 
-        this.energy = (this.energy >= 0) ? energy : settings.baseEnergy();
+        this.energy = (energy >= 0) ? energy : settings.baseEnergy();
     }
 
     private void setHunger(final float hunger) {
         final CreatureSettings settings = App.getSimManager().getSettings().getCreatureSettings();
 
-        this.hunger = (this.hunger >= 0) ? hunger : settings.baseHunger();
+        this.hunger = (hunger >= 0) ? hunger : settings.baseHunger();
     }
 
     private void setAlive(final boolean alive) { this.alive = alive; }
@@ -167,22 +167,20 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
         final int childrenNumber = (int) (RandomConfig.random.nextFloat(1, 2) * dna.getReproductionGene().getGeneAttribute("childrenMultiplier"));
 
         for (int i = 0; i < childrenNumber; i++) {
-            World.preCreatures.add(new PreCreature((int) settings.pregnancyTicks(), this));
+            world.addPreCreature(new PreCreature((int) settings.pregnancyTicks(), this));
             setEnergy(this.energy-settings.reproductionCost());
         }
-
-
     }
 
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Creature creature)) return false;
-        return getId() == creature.getId() && getEnergy() == creature.getEnergy() && getHunger() == creature.getHunger() && Objects.equals(getPosition(), creature.getPosition());
+        return this.id == creature.getId();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getPosition(), getEnergy(), getHunger());
+        return Objects.hash(id);
     }
 
     @Override

@@ -3,7 +3,6 @@ package stats;
 import entities.population.Food;
 import entities.population.Creature;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -63,8 +62,8 @@ public record SimulationSnapshot(
 
     public static SimulationSnapshot capture(
             int tick,
-            ArrayList<Creature> creatures,
-            ArrayList<Food> foods,
+            List<Creature> creatures,
+            List<Food> foods,
             int preCreatureCount,
             int deathsThisTick,
             int preCreatureDeathsThisTick,
