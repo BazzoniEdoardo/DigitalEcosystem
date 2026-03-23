@@ -1,6 +1,6 @@
 package builders;
 
-import entities.population.Food;
+import entities.population.enviroment.Food;
 import entities.movement.Position;
 
 public class FoodBuilder {

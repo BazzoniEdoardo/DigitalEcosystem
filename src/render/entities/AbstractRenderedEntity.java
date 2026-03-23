@@ -1,6 +1,6 @@
 package render.entities;
 
-import entities.SimulationEntity;
+import entities.population.SimulationEntity;
 
 import java.util.Map;
 

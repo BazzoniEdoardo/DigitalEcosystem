@@ -5,7 +5,7 @@ import java.io.Serializable;
 public record ReproductionGeneSettings(float reproductionThreshold, float reproductionRate, float childrenMultiplier, float mutationRate, float mutationDeviation, float reproductionDesire) implements Serializable {
 
     public ReproductionGeneSettings() {
-        this(80.0f, 40.0f, 1.0f, 0.2f, 0.2f, 0.5f);
+        this(80.0f, 40.0f, 1.0f, 0.2f, 0.2f, 1f);
     }
 
     public ReproductionGeneSettings withReproductionThreshold(float reproductionThreshold) {

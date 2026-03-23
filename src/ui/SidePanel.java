@@ -1,7 +1,7 @@
 package ui;
 
-import entities.population.Creature;
-import entities.population.genetics.DNA;
+import entities.population.living.Creature;
+import entities.population.living.genetics.DNA;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

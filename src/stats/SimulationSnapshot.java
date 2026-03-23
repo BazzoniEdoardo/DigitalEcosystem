@@ -1,7 +1,7 @@
 package stats;
 
-import entities.population.Food;
-import entities.population.Creature;
+import entities.population.enviroment.Food;
+import entities.population.living.Creature;
 
 import java.util.List;
 

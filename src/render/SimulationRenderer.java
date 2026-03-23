@@ -1,7 +1,7 @@
 package render;
 
-import entities.population.Creature;
-import entities.population.Food;
+import entities.population.living.Creature;
+import entities.population.enviroment.Food;
 import entities.map.World;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -11,7 +11,6 @@ import render.entities.AbstractRenderedEntity;
 import ui.SidePanel;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 //Fixare gli errori di sincronizzazione tra threads

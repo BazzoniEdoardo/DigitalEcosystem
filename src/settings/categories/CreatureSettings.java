@@ -5,7 +5,7 @@ import java.io.Serializable;
 public record CreatureSettings(float baseEnergy, float baseHunger, float energyLossPerTick, float energyLossPerMovement, float reproductionCost, float pregnancyTicks) implements Serializable {
 
     public CreatureSettings() {
-        this(75, 50, 0.05f, 0.2f, 30, 30);
+        this(100, 50, 0.05f, 0.2f, 30, 30);
     }
 
     public CreatureSettings withBaseEnergy(float baseEnergy) {

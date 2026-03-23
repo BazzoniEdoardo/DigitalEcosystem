@@ -1,16 +1,17 @@
 package builders;
 
 import entities.map.World;
-import entities.population.Creature;
+import entities.map.WorldContext;
+import entities.population.living.Creature;
 import entities.movement.Position;
-import entities.population.genetics.DNA;
+import entities.population.living.genetics.DNA;
 
 public class CreatureBuilder {
     private Position position;
     private float energy;
     private float hunger;
     private DNA dna;
-    private World world;
+    private WorldContext world;
 
     public CreatureBuilder() {}
 
@@ -34,7 +35,7 @@ public class CreatureBuilder {
         return this;
     }
 
-    public CreatureBuilder setWorld(final World world) {
+    public CreatureBuilder setWorld(final WorldContext world) {
         this.world = world;
         return this;
     }
@@ -53,7 +54,7 @@ public class CreatureBuilder {
 
     public DNA getDna() { return dna; }
 
-    public World getWorld() {
+    public WorldContext getWorld() {
         return world;
     }
 
