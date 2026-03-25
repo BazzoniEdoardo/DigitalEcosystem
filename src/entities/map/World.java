@@ -1,8 +1,5 @@
 package entities.map;
 
-import builders.CreatureBuilder;
-import builders.FoodBuilder;
-import configuration.RandomConfig;
 import core.App;
 import entities.Updatable;
 import entities.map.managers.FoodManager;
@@ -14,11 +11,6 @@ import entities.movement.Position;
 import entities.population.living.Creature;
 import entities.population.enviroment.Food;
 import entities.population.living.PreCreature;
-import entities.population.living.genetics.DNA;
-import managers.StatsManager;
-import settings.categories.CreatureSettings;
-import settings.categories.FoodSettings;
-import settings.categories.WorldSettings;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -66,7 +58,12 @@ public class World implements Updatable, WorldContext, Serializable {
 
     @Override
     public MoveResult isMovementAllowed(final Position position) {
-        return worldMap.isMovementAllowed(position, foodManager.getFoods());
+        return worldMap.isMovementAllowed(position);
+    }
+
+    @Override
+    public boolean isInBounds(final Position position) {
+        return worldMap.isInBounds(position);
     }
 
     @Override
@@ -74,10 +71,12 @@ public class World implements Updatable, WorldContext, Serializable {
         return populationManager.addPreCreature(preCreature);
     }
 
-    //GETTERS
-
     @Override
-    public List<Food> getFoods() { return foodManager.getFoods(); }
+    public void removeFood(final Food food) {
+        this.foodManager.getFoods().remove(food);
+    }
+
+    //GETTERS
 
     public List<Creature> getCreatures() { return populationManager.getCreatures(); }
 
@@ -95,6 +94,10 @@ public class World implements Updatable, WorldContext, Serializable {
 
     public int getWidth() {
         return worldMap.getWidth();
+    }
+
+    public List<Food> getFoods() {
+        return foodManager.getFoods();
     }
 
     public int getHeight() {

@@ -4,6 +4,8 @@ import entities.map.World;
 import entities.map.WorldContext;
 import entities.movement.MoveResult;
 import entities.movement.Position;
+import entities.population.SimulationEntity;
+import entities.population.enviroment.Food;
 import entities.population.living.Creature;
 import entities.population.living.genetics.DNA;
 
@@ -40,7 +42,7 @@ public class MovementController {
 
                 if (result.food() != null) {
                     creature.eat(result.food());
-                    world.getFoods().remove(result.food());
+                    world.removeFood(result.food());
                 }
             }
 
@@ -64,22 +66,22 @@ public class MovementController {
         for (int dx = -range; dx <= range; dx++) {
             for (int dy = -range; dy <= range; dy++) {
                 Position currentPosition = new Position(position.x() + dx, position.y() + dy);
-                MoveResult result = world.isMovementAllowed(currentPosition);
+                if (!world.isInBounds(currentPosition)) continue;
 
-                if (result.allowed() && result.food() != null) {
-                    float distance = Math.abs(currentPosition.x() - position.x()) + Math.abs(currentPosition.y() - position.y());
+                final SimulationEntity entity = world.getWorldMap().getCellEntity(currentPosition);
+
+                if (entity instanceof Food f) {
+                    final float distance = Math.abs(dx) + Math.abs(dy);
 
                     if (distance < bestDistance) {
                         bestDistance = distance;
                         closestFood = currentPosition;
                     }
-
                 }
             }
         }
 
         //nextMovement.add(closestFood);
         return closestFood;
-
     }
 }
