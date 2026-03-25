@@ -36,6 +36,7 @@ public abstract class AbstractGene<T extends AbstractGene<T>> implements Gene {
     protected abstract T self();
     public abstract T clone();
 
+    //TODO: Ogni Gene deve implementare il suo tipo di mutazione
     public T mutate(final float deviation) {
         final T clone = clone();
 

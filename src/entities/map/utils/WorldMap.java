@@ -76,7 +76,7 @@ public class WorldMap implements Serializable {
         }));
     }
 
-    public MoveResult isMovementAllowed(final Position position, final List<Food> foods) {
+    public MoveResult isMovementAllowed(final Position position) {
         if (!isInBounds(position)) return new MoveResult(false, null);
 
         final SimulationEntity entity = map[position.x()][position.y()].getEntity();

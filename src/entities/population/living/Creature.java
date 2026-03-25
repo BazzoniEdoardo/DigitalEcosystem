@@ -102,7 +102,7 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
     private void setEnergy(final float energy) {
         final CreatureSettings settings = App.getSimManager().getSettings().getCreatureSettings();
 
-        this.energy = (energy >= 0) ? energy : settings.baseEnergy();
+        this.energy = Math.max(0, energy);
     }
 
     private void setHunger(final float hunger) {
@@ -152,7 +152,7 @@ public class Creature extends AbstractRenderedEntity implements SimulationEntity
 
         if (result.food() != null) {
             this.eat(result.food());
-            this.world.getFoods().remove(result.food());
+            this.world.removeFood(result.food());
         }
 
         return true;
